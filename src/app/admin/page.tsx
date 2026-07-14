@@ -31,8 +31,8 @@ export default async function AdminDashboardPage() {
     ["Staf", summary.staffInside, "blue"],
     ["Pelatih", summary.traineeInside, "yellow"],
     ["Tetamu", summary.guestInside, "red"],
-    ["Masuk hari ini", summary.openedToday, "blue"],
-    ["Keluar hari ini", summary.closedToday, "live"],
+    ["Rekod masuk hari ini", summary.openedToday, "blue"],
+    ["Rekod keluar hari ini", summary.closedToday, "live"],
     ["Lebih 12 jam", summary.overdue, summary.overdue ? "red" : "blue"],
     ["Menunggu kelulusan", pendingResult.count ?? 0, (pendingResult.count ?? 0) ? "yellow" : "blue"],
   ] as const;
