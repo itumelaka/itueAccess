@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title>B2 eAccess Circuit Monogram</title>
+  <desc>Rounded eA monogram built from navy red and yellow electronic traces.</desc>
+  <rect width="512" height="512" rx="112" fill="#1D388C"/>
+  <path d="M91 268c0-77 54-132 128-132 70 0 118 48 118 119v36H164c8 40 34 61 72 61 30 0 55-10 77-31l35 46c-31 31-70 46-117 46-83 0-140-59-140-145Zm75-26h98c-4-34-21-52-48-52-28 0-45 18-50 52Z" fill="#FFFFFF"/>
+  <path d="M334 367 390 145h52l-56 222z" fill="#E6002D"/>
+  <path d="M348 307h91" fill="none" stroke="#E6002D" stroke-width="48" stroke-linecap="round"/>
+  <g fill="none" stroke="#FFF200" stroke-width="9" stroke-linecap="round">
+    <path d="M70 183h51v35"/><path d="M70 355h54v-39"/><path d="M392 105v-35h53"/>
+  </g>
+  <g fill="#FFF200" stroke="#FFFFFF" stroke-width="5">
+    <circle cx="70" cy="183" r="13"/><circle cx="70" cy="355" r="13"/><circle cx="445" cy="70" r="13"/>
+  </g>
+</svg>

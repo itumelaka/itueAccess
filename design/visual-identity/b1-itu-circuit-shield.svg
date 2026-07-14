@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title>B1 ITU Circuit Shield</title>
+  <desc>New ITU shield and open door logo with electronic circuit details.</desc>
+  <rect width="512" height="512" rx="112" fill="#F3F7FC"/>
+  <path d="M256 54 424 112v125c0 109-61 181-168 224C149 418 88 346 88 237V112z" fill="#1D388C"/>
+  <path d="M195 145h113v220h-63V203h-50z" fill="#FFFFFF"/>
+  <path d="M230 254h112l-39-44 42-37 98 106-98 106-42-37 39-44H230z" fill="#E6002D"/>
+  <g fill="none" stroke="#FFF200" stroke-width="9" stroke-linecap="round">
+    <path d="M125 172h48v54h41"/><path d="M119 321h54v-42h41"/><path d="M165 398v-52h49"/>
+  </g>
+  <g fill="#FFF200" stroke="#FFFFFF" stroke-width="5">
+    <circle cx="125" cy="172" r="13"/><circle cx="119" cy="321" r="13"/><circle cx="165" cy="398" r="13"/>
+  </g>
+</svg>

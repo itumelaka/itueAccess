@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title>A1 DVS Pixel Circuit</title>
+  <desc>Logo DVS-inspired navy and red mark with yellow circuit nodes.</desc>
+  <rect width="512" height="512" rx="112" fill="#F3F7FC"/>
+  <path d="M92 78h132l112 260-92 112-46-112V202h-48v-42H92z" fill="#1D388C"/>
+  <path d="M278 139 332 63h72l-91 139-25-39z" fill="#E6002D"/>
+  <path d="m312 217 94-154h45L337 258z" fill="#E6002D"/>
+  <g fill="none" stroke="#1D388C" stroke-width="9" stroke-linecap="round">
+    <path d="M53 111h70v58h58"/><path d="M62 221h82v55h55"/><path d="M88 337h77v51h61"/>
+  </g>
+  <g fill="#FFF200" stroke="#FFFFFF" stroke-width="7">
+    <rect x="107" y="88" width="36" height="36" rx="6"/><rect x="160" y="151" width="36" height="36" rx="6"/>
+    <rect x="126" y="258" width="36" height="36" rx="6"/><rect x="196" y="320" width="36" height="36" rx="6"/>
+  </g>
+  <g fill="#1D388C" stroke="#FFFFFF" stroke-width="5">
+    <rect x="40" y="92" width="28" height="28" rx="5"/><rect x="48" y="207" width="28" height="28" rx="5"/>
+    <rect x="74" y="323" width="28" height="28" rx="5"/><rect x="124" y="373" width="28" height="28" rx="5"/>
+  </g>
+</svg>
