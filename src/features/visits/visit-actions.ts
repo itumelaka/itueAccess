@@ -41,7 +41,7 @@ export async function checkIn(
   try {
     const { data, error } = await rpc("check_in", { p_location_code: locationCode, p_request_id: requestId });
     if (error || !data) return failure(error?.message ?? "Unknown error");
-    archiveVisit({ visitId: data.id, status: "MASUK" }).catch(() => undefined);
+    await archiveVisit({ visitId: data.id, status: "MASUK" }).catch(() => undefined);
     return { ok: true, visitId: data.id, occurredAt: data.check_in_at };
   } catch {
     return { ok: false, code: "OFFLINE", message: "Tiada sambungan. Rekod belum dihantar; cuba semula apabila talian pulih." };
@@ -56,7 +56,7 @@ export async function checkOut(
   try {
     const { data, error } = await rpc("check_out", { p_request_id: requestId });
     if (error || !data) return failure(error?.message ?? "Unknown error");
-    archiveVisit({ visitId: data.id, status: "KELUAR" }).catch(() => undefined);
+    await archiveVisit({ visitId: data.id, status: "KELUAR" }).catch(() => undefined);
     return { ok: true, visitId: data.id, occurredAt: data.check_out_at ?? data.check_in_at };
   } catch {
     return { ok: false, code: "OFFLINE", message: "Tiada sambungan. Rekod belum dihantar; cuba semula apabila talian pulih." };
