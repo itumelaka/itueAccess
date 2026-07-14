@@ -305,7 +305,117 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_check_out_guest: {
+        Args: { p_request_id: string; p_visit_id: string }
+        Returns: {
+          check_in_at: string
+          check_in_request_id: string
+          check_out_at: string | null
+          check_out_request_id: string | null
+          created_at: string
+          guest_name: string | null
+          guest_organization: string | null
+          guest_purpose: string | null
+          id: string
+          location_id: string
+          person_type: Database["public"]["Enums"]["person_type"]
+          profile_id: string | null
+          recorded_by: string
+          source: Database["public"]["Enums"]["visit_source"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      check_in: {
+        Args: { p_location_code: string; p_request_id: string }
+        Returns: {
+          check_in_at: string
+          check_in_request_id: string
+          check_out_at: string | null
+          check_out_request_id: string | null
+          created_at: string
+          guest_name: string | null
+          guest_organization: string | null
+          guest_purpose: string | null
+          id: string
+          location_id: string
+          person_type: Database["public"]["Enums"]["person_type"]
+          profile_id: string | null
+          recorded_by: string
+          source: Database["public"]["Enums"]["visit_source"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      check_out: {
+        Args: { p_request_id: string }
+        Returns: {
+          check_in_at: string
+          check_in_request_id: string
+          check_out_at: string | null
+          check_out_request_id: string | null
+          created_at: string
+          guest_name: string | null
+          guest_organization: string | null
+          guest_purpose: string | null
+          id: string
+          location_id: string
+          person_type: Database["public"]["Enums"]["person_type"]
+          profile_id: string | null
+          recorded_by: string
+          source: Database["public"]["Enums"]["visit_source"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      is_admin: { Args: never; Returns: boolean }
+      register_guest: {
+        Args: {
+          p_location_id: string
+          p_name: string
+          p_organization: string
+          p_purpose: string
+          p_request_id: string
+        }
+        Returns: {
+          check_in_at: string
+          check_in_request_id: string
+          check_out_at: string | null
+          check_out_request_id: string | null
+          created_at: string
+          guest_name: string | null
+          guest_organization: string | null
+          guest_purpose: string | null
+          id: string
+          location_id: string
+          person_type: Database["public"]["Enums"]["person_type"]
+          profile_id: string | null
+          recorded_by: string
+          source: Database["public"]["Enums"]["visit_source"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "ADMIN" | "USER"
