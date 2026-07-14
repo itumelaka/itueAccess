@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ITU Access",
+  title: "ITU eAccess",
   description: "Sistem rekod keluar masuk bilik ITU",
 };
 
