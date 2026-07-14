@@ -1,4 +1,9 @@
 import type { Metadata, Viewport } from "next";
+
+import { ConnectionBanner } from "@/features/pwa/connection-banner";
+import { RegisterServiceWorker } from "@/features/pwa/register-service-worker";
+import { publicEnv } from "@/lib/env";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,7 +26,11 @@ export const viewport: Viewport = { themeColor: "#1D388C", colorScheme: "light" 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ms">
-      <body>{children}</body>
+      <body>
+        <RegisterServiceWorker />
+        <ConnectionBanner fallbackUrl={publicEnv.NEXT_PUBLIC_FALLBACK_FORM_URL} />
+        {children}
+      </body>
     </html>
   );
 }

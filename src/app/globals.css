@@ -42,6 +42,7 @@ body {
 .login-copy h1 { margin: 0; color: #173b70; font-size: clamp(2.55rem, 5.1vw, 5.1rem); line-height: 1.08; letter-spacing: -.045em; text-wrap: balance; }
 .login-summary { max-width: 620px; margin: 1.5rem 0 0; color: #294d79; font-size: clamp(1.1rem, 2vw, 1.55rem); line-height: 1.55; }
 .login-action { margin-top: 2rem; }
+.login-install-link { display: inline-block; margin: 1rem 0 0 1rem; color: #1d388c; font-size: .92rem; font-weight: 800; text-underline-offset: .2rem; }
 .google-login-button {
   min-height: 58px;
   display: inline-flex;
@@ -83,8 +84,23 @@ body {
   .login-eyebrow { font-size: .72rem; }
   .login-copy h1 { font-size: clamp(2.35rem, 12vw, 3.35rem); }
   .google-login-button { width: 100%; }
+  .login-install-link { display: block; margin-left: 0; text-align: center; }
   .login-tagline { margin-top: 2.25rem; }
   .login-visual { margin: -2.25rem -1rem -1rem; }
   .access-door { max-height: 330px; }
 }
 @media (prefers-reduced-motion: reduce) { .google-login-button { transition: none; } }
+
+.offline-notice { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .35rem .8rem; padding: .8rem 1rem; border-bottom: 1px solid #b78b00; background: #fff2b8; color: #543f00; font-size: .9rem; text-align: center; }
+.offline-notice a { color: #1d388c; font-weight: 800; }
+.install-page { min-height: 100svh; display: grid; place-items: center; padding: 1.5rem; background: radial-gradient(circle at 50% 5%, #dceaff, #f3f7fc 42rem); }
+.install-card { width: min(100%, 560px); padding: clamp(1.5rem, 5vw, 3rem); border: 1px solid #fff; border-radius: 1.75rem; background: #fff; box-shadow: 0 24px 65px rgb(29 56 140 / 14%); text-align: center; }
+.install-card>img { border-radius: 1.25rem; box-shadow: 0 12px 28px rgb(29 56 140 / 16%); }
+.install-kicker { margin: 1.4rem 0 .45rem; color: #e6002d; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.install-card h1 { margin: 0; color: #173b70; font-size: clamp(2rem, 7vw, 3.2rem); letter-spacing: -.04em; }
+.install-card>p { color: #48617f; line-height: 1.65; }
+.install-button { min-height: 52px; margin-top: 1rem; padding: .8rem 1.3rem; border: 0; border-radius: .85rem; background: #1d388c; color: #fff; cursor: pointer; font: inherit; font-weight: 800; }
+.install-guidance { margin-top: 1.5rem; padding: 1.1rem; border-radius: 1rem; background: #f3f7fc; color: #294d79; text-align: left; }
+.install-guidance p { margin: .35rem 0 0; line-height: 1.55; }
+.install-success { color: #17653a!important; font-weight: 800; }
+.install-home-link { display: inline-block; margin-top: 1.5rem; color: #1d388c; font-weight: 800; }

@@ -4,7 +4,15 @@ import { type NextRequest, NextResponse } from "next/server";
 import { publicEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/types";
 
+const publicPwaAssets = new Set(["/sw.js", "/offline.html", "/manifest.webmanifest"]);
+
+export function shouldRefreshSession(pathname: string) {
+  return !publicPwaAssets.has(pathname) && !/\.(?:svg|png|jpg|jpeg|gif|webp)$/.test(pathname);
+}
+
 export async function proxy(request: NextRequest) {
+  if (!shouldRefreshSession(request.nextUrl.pathname)) return NextResponse.next();
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(
@@ -32,5 +40,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|sw\\.js|offline\\.html|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

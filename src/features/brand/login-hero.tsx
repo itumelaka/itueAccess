@@ -35,7 +35,10 @@ export function LoginHero() {
             <p className="login-eyebrow">Sistem Rekod Akses Bilik ITU</p>
             <h1>Rekod masuk dan keluar, tanpa teka-teki.</h1>
             <p className="login-summary">Sistem rekod akses bilik ITU yang mudah, selamat dan teratur.</p>
-            <div className="login-action"><GoogleLoginButton /></div>
+            <div className="login-action">
+              <GoogleLoginButton />
+              <a href="/install" className="login-install-link">Pasang sebagai aplikasi</a>
+            </div>
             <p className="login-tagline">Masuk mudah, rekod teratur.</p>
           </div>
           <div className="login-visual"><AccessDoorIllustration /></div>
