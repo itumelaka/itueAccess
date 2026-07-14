@@ -8,6 +8,7 @@ backups/
 *.log
 
 .wrangler/
+.pkg/
 cloudflare-env.d.ts
 .dev.vars*
 !.dev.vars.example
