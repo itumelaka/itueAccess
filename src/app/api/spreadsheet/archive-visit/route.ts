@@ -1,7 +1,9 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 
 import { requireProfile } from "@/features/auth/require-profile";
 import {
+  type ArchivePayload,
   archiveUserMovement,
   syncArchivePayload,
 } from "@/features/spreadsheet/archive-sync";
@@ -11,6 +13,17 @@ type ArchiveVisitRequest = {
   visitId?: string;
   status?: "MASUK" | "KELUAR";
 };
+
+function syncAfterResponse(payload: ArchivePayload | null) {
+  if (!payload) return;
+
+  try {
+    const { ctx } = getCloudflareContext({ async: false });
+    ctx.waitUntil(syncArchivePayload(payload));
+  } catch {
+    void syncArchivePayload(payload);
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -61,9 +74,9 @@ export async function POST(request: Request) {
       category: visitProfile?.category ?? profile.category,
       locationName: visitLocation?.name ?? "",
     });
-    const result = await syncArchivePayload(payload);
+    syncAfterResponse(payload);
 
-    return NextResponse.json(result);
+    return NextResponse.json({ ok: true, queued: Boolean(payload) });
   } catch (error) {
     return NextResponse.json({
       ok: false,
