@@ -1,4 +1,4 @@
-const ITU_EACCESS_ALLOWED_SHEETS = new Set(["STAFF", "STUDENT", "TETAMU"]);
+var ITU_EACCESS_ALLOWED_SHEETS = ["STAFF", "STUDENT", "TETAMU"];
 
 function jsonResponse(payload) {
   return ContentService
@@ -21,7 +21,7 @@ function doPost(e) {
     const sheetName = String(payload.sheetName || "").trim();
     const values = Array.isArray(payload.values) ? payload.values : null;
 
-    if (!ITU_EACCESS_ALLOWED_SHEETS.has(sheetName)) {
+    if (ITU_EACCESS_ALLOWED_SHEETS.indexOf(sheetName) === -1) {
       return jsonResponse({ ok: false, error: "Invalid sheetName" });
     }
 
@@ -35,6 +35,8 @@ function doPost(e) {
     }
 
     sheet.appendRow(values);
+    formatArchiveRow(sheet, sheet.getLastRow(), values.length);
+
     return jsonResponse({ ok: true, sheetName: sheetName, appendedColumns: values.length });
   } catch (error) {
     return jsonResponse({
@@ -42,4 +44,16 @@ function doPost(e) {
       error: String(error && error.message ? error.message : error),
     });
   }
+}
+
+function formatArchiveRow(sheet, row, colCount) {
+  var range = sheet.getRange(row, 1, 1, colCount);
+  var values = range.getValues()[0].map(function(value, index) {
+    if (index === 0 || index === 1) return value;
+    if (value && typeof value === "string") return value.toUpperCase();
+    return value;
+  });
+
+  range.setValues([values]);
+  range.setBorder(true, true, true, true, true, true);
 }

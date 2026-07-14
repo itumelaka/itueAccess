@@ -4,6 +4,10 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
 import { requireProfile } from "@/features/auth/require-profile";
+import {
+  archiveGuestMovement,
+  syncArchivePayload,
+} from "@/features/spreadsheet/archive-sync";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import {
@@ -23,6 +27,36 @@ async function adminClient() {
 
 function ensureSuccess(error: { message: string } | null) {
   if (error) throw new Error(error.message);
+}
+
+type GuestVisitRow = {
+  check_in_at: string;
+  check_out_at: string | null;
+  guest_name: string | null;
+  guest_organization: string | null;
+  guest_purpose: string | null;
+};
+
+async function syncGuestVisitArchive(input: {
+  visit: GuestVisitRow | null;
+  status: "MASUK" | "KELUAR";
+  recorderEmail: string;
+}) {
+  if (!input.visit) return;
+
+  await syncArchivePayload(
+    archiveGuestMovement({
+      status: input.status,
+      occurredAt:
+        input.status === "KELUAR"
+          ? (input.visit.check_out_at ?? input.visit.check_in_at)
+          : input.visit.check_in_at,
+      recorderEmail: input.recorderEmail,
+      guestName: input.visit.guest_name,
+      organization: input.visit.guest_organization,
+      purpose: input.visit.guest_purpose,
+    }),
+  );
 }
 
 export async function approveUser(formData: FormData) {
@@ -104,8 +138,9 @@ export async function registerGuest(formData: FormData) {
     purpose: text(formData, "purpose"),
     locationId: text(formData, "locationId"),
   });
-  const supabase = await adminClient();
-  const { error } = await supabase.rpc("register_guest", {
+  const { profile } = await requireProfile("ADMIN");
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("register_guest", {
     p_location_id: input.locationId,
     p_name: input.name,
     p_organization: input.organization,
@@ -113,6 +148,11 @@ export async function registerGuest(formData: FormData) {
     p_request_id: randomUUID(),
   });
   ensureSuccess(error);
+  await syncGuestVisitArchive({
+    visit: data,
+    status: "MASUK",
+    recorderEmail: profile.email,
+  });
   revalidatePath("/admin/guests");
   revalidatePath("/admin");
 }
@@ -120,12 +160,18 @@ export async function registerGuest(formData: FormData) {
 export async function checkOutGuest(formData: FormData) {
   const visitId = text(formData, "visitId");
   if (!visitId) throw new Error("Rekod tetamu tidak ditemui");
-  const supabase = await adminClient();
-  const { error } = await supabase.rpc("admin_check_out_guest", {
+  const { profile } = await requireProfile("ADMIN");
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("admin_check_out_guest", {
     p_visit_id: visitId,
     p_request_id: randomUUID(),
   });
   ensureSuccess(error);
+  await syncGuestVisitArchive({
+    visit: data,
+    status: "KELUAR",
+    recorderEmail: profile.email,
+  });
   revalidatePath("/admin/guests");
   revalidatePath("/admin");
 }

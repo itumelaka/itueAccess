@@ -10,10 +10,19 @@ type RpcResult = Promise<{
 }>;
 
 export type VisitRpc = (name: "check_in" | "check_out", params: Record<string, string>) => RpcResult;
+type ArchiveVisit = (input: { visitId: string; status: "MASUK" | "KELUAR" }) => Promise<void>;
 
 const browserRpc: VisitRpc = async (name, params) => {
   const result = await createSupabaseBrowserClient().rpc(name, params as never);
   return result as unknown as Awaited<RpcResult>;
+};
+
+const browserArchiveVisit: ArchiveVisit = async (input) => {
+  await fetch("/api/spreadsheet/archive-visit", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
 };
 
 function failure(message: string): VisitActionResult {
@@ -23,20 +32,31 @@ function failure(message: string): VisitActionResult {
   return { ok: false, code: "UNKNOWN", message: "Permintaan tidak berjaya. Sila cuba lagi." };
 }
 
-export async function checkIn(locationCode: string, requestId: string, rpc: VisitRpc = browserRpc): Promise<VisitActionResult> {
+export async function checkIn(
+  locationCode: string,
+  requestId: string,
+  rpc: VisitRpc = browserRpc,
+  archiveVisit: ArchiveVisit = browserArchiveVisit,
+): Promise<VisitActionResult> {
   try {
     const { data, error } = await rpc("check_in", { p_location_code: locationCode, p_request_id: requestId });
     if (error || !data) return failure(error?.message ?? "Unknown error");
+    archiveVisit({ visitId: data.id, status: "MASUK" }).catch(() => undefined);
     return { ok: true, visitId: data.id, occurredAt: data.check_in_at };
   } catch {
     return { ok: false, code: "OFFLINE", message: "Tiada sambungan. Rekod belum dihantar; cuba semula apabila talian pulih." };
   }
 }
 
-export async function checkOut(requestId: string, rpc: VisitRpc = browserRpc): Promise<VisitActionResult> {
+export async function checkOut(
+  requestId: string,
+  rpc: VisitRpc = browserRpc,
+  archiveVisit: ArchiveVisit = browserArchiveVisit,
+): Promise<VisitActionResult> {
   try {
     const { data, error } = await rpc("check_out", { p_request_id: requestId });
     if (error || !data) return failure(error?.message ?? "Unknown error");
+    archiveVisit({ visitId: data.id, status: "KELUAR" }).catch(() => undefined);
     return { ok: true, visitId: data.id, occurredAt: data.check_out_at ?? data.check_in_at };
   } catch {
     return { ok: false, code: "OFFLINE", message: "Tiada sambungan. Rekod belum dihantar; cuba semula apabila talian pulih." };

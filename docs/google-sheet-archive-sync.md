@@ -85,7 +85,7 @@ $url = "WEB_APP_URL?secret=SECRET"
 $body = @{
   sheetName = "STAFF"
   values = @(
-    "15/07/2026 10:00:00",
+    "15-07-2026 10:00:00",
     "test.staff@example.com",
     "STAFF",
     "TEST STAFF",
@@ -111,7 +111,7 @@ $url = "WEB_APP_URL?secret=SECRET"
 $body = @{
   sheetName = "STUDENT"
   values = @(
-    "15/07/2026 10:05:00",
+    "15-07-2026 10:05:00",
     "test.pelatih@example.com",
     "TEST PELATIH",
     "AUDITORIUM",
@@ -137,7 +137,7 @@ $url = "WEB_APP_URL?secret=SECRET"
 $body = @{
   sheetName = "TETAMU"
   values = @(
-    "15/07/2026 10:10:00",
+    "15-07-2026 10:10:00",
     "admin@example.com",
     "TEST TETAMU",
     "TEST ORGANISASI",
@@ -182,3 +182,13 @@ Baru kita sambung fasa eAccess:
 3. Coding eAccess untuk call webhook selepas Supabase berjaya simpan rekod.
 
 Jangan commit atau letak real secret dalam GitHub.
+
+## 7. Production deployment order
+
+1. Deploy Apps Script Web App dan copy URL.
+2. Add Cloudflare Worker environment variables:
+   - `SPREADSHEET_ARCHIVE_WEBHOOK_URL`
+   - `SPREADSHEET_ARCHIVE_SECRET`
+3. Redeploy ITU eAccess dari GitHub/Cloudflare.
+4. Test satu rekod staf/pelatih dan confirm row append ke `STAFF` atau `STUDENT`.
+5. Test satu rekod tetamu dan confirm row append ke `TETAMU`.
