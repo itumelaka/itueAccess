@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 
 import { requireProfile } from "@/features/auth/require-profile";
+import { resolveArchiveCategory } from "@/features/spreadsheet/archive-category";
 import {
   type ArchivePayload,
   archiveUserMovement,
@@ -71,7 +72,11 @@ export async function POST(request: Request) {
       occurredAt,
       email: visitProfile?.email ?? profile.email,
       displayName: visitProfile?.display_name ?? profile.display_name,
-      category: visitProfile?.category ?? profile.category,
+      category: resolveArchiveCategory({
+        visitCategory: visitProfile?.category,
+        profileCategory: profile.category,
+        profileRole: profile.role,
+      }),
       locationName: visitLocation?.name ?? "",
     });
     syncAfterResponse(payload);
