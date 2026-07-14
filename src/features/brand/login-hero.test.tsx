@@ -8,7 +8,7 @@ describe("LoginHero", () => {
     render(<LoginHero />);
 
     expect(screen.getByRole("img", { name: "ITU eAccess" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Rekod masuk dan keluar, tanpa teka-teki." })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Rekod Keluar & Masuk" })).toBeTruthy();
     expect(screen.getByText("Sistem rekod akses bilik ITU yang mudah, selamat dan teratur.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Log masuk dengan Google" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Pasang sebagai aplikasi" }).getAttribute("href")).toBe("/install");

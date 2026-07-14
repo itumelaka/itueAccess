@@ -33,7 +33,7 @@ export function LoginHero() {
         <div className="login-hero-grid">
           <div className="login-copy">
             <p className="login-eyebrow">Sistem Rekod Akses Bilik ITU</p>
-            <h1>Rekod masuk dan keluar, tanpa teka-teki.</h1>
+            <h1>Rekod Keluar &amp; Masuk</h1>
             <p className="login-summary">Sistem rekod akses bilik ITU yang mudah, selamat dan teratur.</p>
             <div className="login-action">
               <GoogleLoginButton />
