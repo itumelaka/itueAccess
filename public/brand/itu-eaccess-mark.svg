@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title>ITU eAccess eA Shield</title>
+  <desc>A geometric eA monogram inside a red and navy shield with a yellow circuit accent.</desc>
+  <defs>
+    <clipPath id="left-half"><rect width="256" height="512"/></clipPath>
+    <clipPath id="right-half"><rect x="256" width="256" height="512"/></clipPath>
+  </defs>
+
+  <path d="M256 27 458 101v145c0 116-75 199-202 241C129 445 54 362 54 246V101Z" fill="#E6002D" clip-path="url(#left-half)"/>
+  <path d="M256 27 458 101v145c0 116-75 199-202 241C129 445 54 362 54 246V101Z" fill="#1D388C" clip-path="url(#right-half)"/>
+  <path d="M256 68 418 127v119c0 91-57 157-162 195-105-38-162-104-162-195V127Z" fill="#FFFFFF"/>
+
+  <path d="M123 259c0-66 45-110 108-110 58 0 98 39 98 98v30H169c8 28 30 44 61 44 26 0 48-9 67-27l27 35c-26 27-59 40-98 40-62 0-103-45-103-110Zm49-22h108c-5-29-22-45-51-45-28 0-48 16-57 45Z" fill="#1D388C"/>
+  <path d="M283 361 349 158h42l70 203h-48l-16-49h-61l-15 49Zm66-90h35l-18-57Z" fill="#1D388C" fill-rule="evenodd"/>
+  <path d="m391 158 70 203h-48l-48-147 15-56Z" fill="#E6002D"/>
+
+  <path d="M114 343c77 59 193 71 286 22" fill="none" stroke="#FFD429" stroke-width="14" stroke-linecap="round"/>
+  <path d="M142 205h-27v-29H88" fill="none" stroke="#FFD429" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="88" cy="176" r="12" fill="#FFD429" stroke="#1D388C" stroke-width="5"/>
+</svg>

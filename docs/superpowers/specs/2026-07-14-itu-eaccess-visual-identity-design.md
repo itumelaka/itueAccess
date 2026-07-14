@@ -1,7 +1,7 @@
 # ITU eAccess Visual Identity Design
 
 **Date:** 2026-07-14  
-**Status:** Approved direction, pending visual comparison  
+**Status:** Selected and approved for application integration
 **Product:** ITU eAccess — Sistem Rekod Keluar Masuk ITU
 
 ## Objective
@@ -72,4 +72,4 @@ The front-page header will use a responsive split layout:
 
 ## Approval Boundary
 
-Approval of this document authorizes production of four comparison concepts only. Selection and integration into the PWA require a separate approval after the comparison is reviewed.
+The user selected the `eA` shield direction (the lower-left concept from the final external comparison) on 2026-07-14. The approved login composition combines that mark with the responsive open-door and circuit header direction. Integration is authorized for the anonymous login page, application metadata, and PWA launcher icons; authenticated workflows remain unchanged.
