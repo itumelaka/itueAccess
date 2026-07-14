@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { shouldRefreshSession } from "./proxy";
+import { shouldRefreshSession } from "./middleware";
 
 describe("shouldRefreshSession", () => {
   it("keeps the offline shell independent from Supabase session refresh", () => {

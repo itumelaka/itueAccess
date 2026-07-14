@@ -10,7 +10,7 @@ export function shouldRefreshSession(pathname: string) {
   return !publicPwaAssets.has(pathname) && !/\.(?:svg|png|jpg|jpeg|gif|webp)$/.test(pathname);
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   if (!shouldRefreshSession(request.nextUrl.pathname)) return NextResponse.next();
 
   let response = NextResponse.next({ request });
