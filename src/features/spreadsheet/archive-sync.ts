@@ -1,3 +1,5 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 type ArchiveStatus = "MASUK" | "KELUAR";
 type UserCategory = "STAFF" | "PELATIH";
 type ArchiveSheetName = "STAFF" | "STUDENT" | "TETAMU";
@@ -24,6 +26,30 @@ export type GuestMovementInput = {
   organization: string | null;
   purpose: string | null;
 };
+
+function getArchiveConfig() {
+  const processUrl = process.env.SPREADSHEET_ARCHIVE_WEBHOOK_URL;
+  const processSecret = process.env.SPREADSHEET_ARCHIVE_SECRET;
+
+  if (processUrl && processSecret) {
+    return { url: processUrl, secret: processSecret };
+  }
+
+  try {
+    const { env } = getCloudflareContext({ async: false });
+    const cloudflareEnv = env as Record<string, string | undefined>;
+    const url = cloudflareEnv.SPREADSHEET_ARCHIVE_WEBHOOK_URL;
+    const secret = cloudflareEnv.SPREADSHEET_ARCHIVE_SECRET;
+
+    if (url && secret) {
+      return { url, secret };
+    }
+  } catch {
+    // Outside Cloudflare runtime, process.env is the only config source.
+  }
+
+  return { url: processUrl, secret: processSecret };
+}
 
 function malaysiaDateParts(isoDate: string) {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -109,8 +135,7 @@ export async function syncArchivePayload(
 ): Promise<{ ok: boolean; message?: string }> {
   if (!payload) return { ok: false, message: "No archive payload to sync" };
 
-  const url = process.env.SPREADSHEET_ARCHIVE_WEBHOOK_URL;
-  const secret = process.env.SPREADSHEET_ARCHIVE_SECRET;
+  const { url, secret } = getArchiveConfig();
 
   if (!url || !secret) {
     return {

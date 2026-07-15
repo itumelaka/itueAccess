@@ -1,13 +1,25 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
 import {
   archiveGuestMovement,
   archiveUserMovement,
   syncArchivePayload,
 } from "./archive-sync";
 
+vi.mock("@opennextjs/cloudflare", () => ({
+  getCloudflareContext: vi.fn(() => {
+    throw new Error("Cloudflare context is not available");
+  }),
+}));
+
 afterEach(() => {
   vi.unstubAllEnvs();
+  vi.mocked(getCloudflareContext).mockReset();
+  vi.mocked(getCloudflareContext).mockImplementation(() => {
+    throw new Error("Cloudflare context is not available");
+  });
 });
 
 describe("archiveUserMovement", () => {
@@ -123,6 +135,31 @@ describe("syncArchivePayload", () => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ sheetName: "STAFF", values: ["x"] }),
       },
+    );
+  });
+
+  it("uses Cloudflare runtime bindings when process env is missing", async () => {
+    vi.mocked(getCloudflareContext).mockReturnValue({
+      env: {
+        SPREADSHEET_ARCHIVE_WEBHOOK_URL: "https://script.example/exec",
+        SPREADSHEET_ARCHIVE_SECRET: "worker-secret",
+      },
+    } as never);
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true }),
+    });
+
+    await expect(
+      syncArchivePayload(
+        { sheetName: "STAFF", values: ["x"] },
+        fetchImpl as unknown as typeof fetch,
+      ),
+    ).resolves.toEqual({ ok: true });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      "https://script.example/exec?secret=worker-secret",
+      expect.any(Object),
     );
   });
 });
