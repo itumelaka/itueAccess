@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -14,7 +15,7 @@ export function decideProfileRoute(profile: ProfileAccess, adminOnly: boolean) {
   return null;
 }
 
-export async function requireProfile(requiredRole?: "ADMIN") {
+export const requireProfile = cache(async (requiredRole?: "ADMIN") => {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -34,4 +35,4 @@ export async function requireProfile(requiredRole?: "ADMIN") {
   if (destination) redirect(destination);
 
   return { user, profile };
-}
+});
