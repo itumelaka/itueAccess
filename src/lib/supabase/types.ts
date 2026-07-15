@@ -193,6 +193,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admin_notified_at: string | null
           category: Database["public"]["Enums"]["user_category"] | null
           created_at: string
           display_name: string
@@ -203,6 +204,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_notified_at?: string | null
           category?: Database["public"]["Enums"]["user_category"] | null
           created_at?: string
           display_name: string
@@ -213,6 +215,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_notified_at?: string | null
           category?: Database["public"]["Enums"]["user_category"] | null
           created_at?: string
           display_name?: string
@@ -410,6 +413,10 @@ export type Database = {
         }
       }
       is_admin: { Args: never; Returns: boolean }
+      mark_pending_profile_notified: {
+        Args: { p_profile_id: string }
+        Returns: boolean
+      }
       register_guest: {
         Args: {
           p_location_id: string
