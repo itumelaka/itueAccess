@@ -63,11 +63,16 @@ export async function approveUser(formData: FormData) {
   const input = parseUserApproval({
     profileId: text(formData, "profileId"),
     category: text(formData, "category"),
+    displayName: text(formData, "displayName"),
   });
   const supabase = await adminClient();
   const { error } = await supabase
     .from("profiles")
-    .update({ category: input.category, status: "ACTIVE" })
+    .update({
+      category: input.category,
+      display_name: input.displayName,
+      status: "ACTIVE",
+    })
     .eq("id", input.profileId);
   ensureSuccess(error);
   revalidatePath("/admin/users");

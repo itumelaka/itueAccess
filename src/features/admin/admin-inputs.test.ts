@@ -13,8 +13,14 @@ describe("admin input validation", () => {
 
   it("requires a category when approving a user", () => {
     expect(() =>
-      parseUserApproval({ profileId: "profile-1", category: "" }),
-    ).toThrow("Kategori pengguna diperlukan");
+      parseUserApproval({ profileId: "profile-1", category: "", displayName: "Nama" }),
+    ).toThrow("Nama penuh dan kategori pengguna diperlukan");
+  });
+
+  it("requires a full name when approving a user", () => {
+    expect(() =>
+      parseUserApproval({ profileId: "profile-1", category: "STAFF", displayName: "" }),
+    ).toThrow("Nama penuh dan kategori pengguna diperlukan");
   });
 
   it("accepts a complete guest registration", () => {

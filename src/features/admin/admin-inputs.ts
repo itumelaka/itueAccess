@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const approvalSchema = z.object({
   profileId: z.string().min(1),
+  displayName: z.string().trim().min(1),
   category: z.enum(["STAFF", "PELATIH"], {
     error: "Kategori pengguna diperlukan",
   }),
@@ -28,9 +29,10 @@ export function toLocationCode(value: string) {
 export function parseUserApproval(input: {
   profileId: string;
   category: string;
+  displayName: string;
 }) {
   const result = approvalSchema.safeParse(input);
-  if (!result.success) throw new Error("Kategori pengguna diperlukan");
+  if (!result.success) throw new Error("Nama penuh dan kategori pengguna diperlukan");
   return result.data;
 }
 
