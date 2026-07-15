@@ -62,6 +62,7 @@ describe("checkIn", () => {
       error: null,
     });
     const archiveVisit = vi.fn().mockRejectedValue(new Error("sheet offline"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
     await expect(
       checkIn("AUDITORIUM", crypto.randomUUID(), rpc, archiveVisit),
@@ -70,6 +71,11 @@ describe("checkIn", () => {
       visitId: "visit-1",
       occurredAt: "2026-07-14T12:00:00Z",
     });
+    expect(warn).toHaveBeenCalledWith(
+      "Spreadsheet archive sync failed",
+      expect.any(Error),
+    );
+    warn.mockRestore();
   });
 
   it("maps an existing open visit to a Malay message", async () => {
@@ -125,6 +131,7 @@ describe("checkOut", () => {
       error: null,
     });
     const archiveVisit = vi.fn().mockRejectedValue(new Error("sheet offline"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
     await expect(
       checkOut("10000000-0000-4000-8000-000000000002", rpc, archiveVisit),
@@ -133,5 +140,10 @@ describe("checkOut", () => {
       visitId: "visit-1",
       occurredAt: "2026-07-14T13:00:00Z",
     });
+    expect(warn).toHaveBeenCalledWith(
+      "Spreadsheet archive sync failed",
+      expect.any(Error),
+    );
+    warn.mockRestore();
   });
 });

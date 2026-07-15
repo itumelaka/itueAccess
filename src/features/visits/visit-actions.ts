@@ -18,12 +18,25 @@ const browserRpc: VisitRpc = async (name, params) => {
 };
 
 const browserArchiveVisit: ArchiveVisit = async (input) => {
-  await fetch("/api/spreadsheet/archive-visit", {
+  const response = await fetch("/api/spreadsheet/archive-visit", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(input),
   });
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok || data?.ok === false) {
+    throw new Error(String(data?.error ?? "Archive sync request failed"));
+  }
 };
+
+async function archiveSafely(archiveVisit: ArchiveVisit, input: { visitId: string; status: "MASUK" | "KELUAR" }) {
+  try {
+    await archiveVisit(input);
+  } catch (error) {
+    console.warn("Spreadsheet archive sync failed", error);
+  }
+}
 
 function failure(message: string): VisitActionResult {
   if (message.includes("open visit")) return { ok: false, code: "OPEN_VISIT", message: "Anda masih mempunyai rekod lawatan yang belum ditutup." };
@@ -41,7 +54,7 @@ export async function checkIn(
   try {
     const { data, error } = await rpc("check_in", { p_location_code: locationCode, p_request_id: requestId });
     if (error || !data) return failure(error?.message ?? "Unknown error");
-    await archiveVisit({ visitId: data.id, status: "MASUK" }).catch(() => undefined);
+    await archiveSafely(archiveVisit, { visitId: data.id, status: "MASUK" });
     return { ok: true, visitId: data.id, occurredAt: data.check_in_at };
   } catch {
     return { ok: false, code: "OFFLINE", message: "Tiada sambungan. Rekod belum dihantar; cuba semula apabila talian pulih." };
@@ -56,7 +69,7 @@ export async function checkOut(
   try {
     const { data, error } = await rpc("check_out", { p_request_id: requestId });
     if (error || !data) return failure(error?.message ?? "Unknown error");
-    await archiveVisit({ visitId: data.id, status: "KELUAR" }).catch(() => undefined);
+    await archiveSafely(archiveVisit, { visitId: data.id, status: "KELUAR" });
     return { ok: true, visitId: data.id, occurredAt: data.check_out_at ?? data.check_in_at };
   } catch {
     return { ok: false, code: "OFFLINE", message: "Tiada sambungan. Rekod belum dihantar; cuba semula apabila talian pulih." };
