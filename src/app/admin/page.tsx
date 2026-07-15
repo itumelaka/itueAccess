@@ -1,8 +1,22 @@
 import Link from "next/link";
 
+import { adminCheckOutVisit } from "@/features/admin/admin-actions";
 import { requireProfile } from "@/features/auth/require-profile";
 import { summarizeDashboard } from "@/features/admin/dashboard-queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+const malaysiaDateTime = new Intl.DateTimeFormat("ms-MY", {
+  timeZone: "Asia/Kuala_Lumpur",
+  day: "numeric",
+  month: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
+function formatCheckIn(value: string) {
+  return malaysiaDateTime.format(new Date(value));
+}
 
 export default async function AdminDashboardPage() {
   const { profile } = await requireProfile("ADMIN");
@@ -11,7 +25,7 @@ export default async function AdminDashboardPage() {
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 86_400_000).toISOString();
 
   const [openResult, activityResult, profilesResult, locationsResult, pendingResult] = await Promise.all([
-    supabase.from("visits").select("id, person_type, profile_id, location_id, check_in_at, check_out_at").is("check_out_at", null).order("check_in_at", { ascending: false }).limit(500),
+    supabase.from("visits").select("id, person_type, profile_id, location_id, check_in_at, check_out_at, guest_name, guest_organization, locations(name), profiles!visits_profile_id_fkey(email, display_name, category)").is("check_out_at", null).order("check_in_at", { ascending: false }).limit(500),
     supabase.from("visits").select("id, person_type, profile_id, location_id, check_in_at, check_out_at").gte("check_in_at", thirtyDaysAgo).order("check_in_at", { ascending: false }).limit(1000),
     supabase.from("profiles").select("id, category"),
     supabase.from("locations").select("id, name").eq("is_active", true).order("name"),
@@ -52,6 +66,48 @@ export default async function AdminDashboardPage() {
           {summary.byLocation.length ? summary.byLocation.map((location) => (
             <div className="location-bar" key={location.id}><span>{location.name}</span><div><i style={{ width: `${Math.min(100, location.inside * 14)}%` }} /></div><strong>{location.inside}</strong></div>
           )) : <p>Belum ada lokasi aktif.</p>}
+        </div>
+      </section>
+      <section className="admin-panel">
+        <div className="panel-heading">
+          <div><p className="admin-kicker">Perlu perhatian</p><h2>Lebih 12 jam</h2></div>
+          <span className="count-pill">{summary.overdueOccupants.length} rekod</span>
+        </div>
+        <div className="admin-list">
+          {summary.overdueOccupants.length ? summary.overdueOccupants.map((visit) => (
+            <article className="guest-row" key={visit.id}>
+              <div>
+                <strong>{visit.name}</strong>
+                <small>{visit.categoryLabel} · {visit.locationName}</small>
+                <span>Masuk: {formatCheckIn(visit.checkInAt)} · {visit.hoursInside.toFixed(1)} jam</span>
+              </div>
+              <form action={adminCheckOutVisit}>
+                <input type="hidden" name="visitId" value={visit.id} />
+                <button className="admin-danger" type="submit">Rekod keluar manual</button>
+              </form>
+            </article>
+          )) : <p className="empty-state">Tiada rekod melebihi 12 jam.</p>}
+        </div>
+      </section>
+      <section className="admin-panel">
+        <div className="panel-heading">
+          <div><p className="admin-kicker">Senarai semasa</p><h2>Masih berada dalam bilik</h2></div>
+          <span className="count-pill">{summary.currentOccupants.length} orang</span>
+        </div>
+        <div className="admin-list">
+          {summary.currentOccupants.length ? summary.currentOccupants.map((visit) => (
+            <article className="guest-row" key={visit.id}>
+              <div>
+                <strong>{visit.name}</strong>
+                <small>{visit.categoryLabel} · {visit.locationName}</small>
+                <span>Masuk: {formatCheckIn(visit.checkInAt)} · {visit.hoursInside.toFixed(1)} jam</span>
+              </div>
+              <form action={adminCheckOutVisit}>
+                <input type="hidden" name="visitId" value={visit.id} />
+                <button className="admin-secondary" type="submit">Rekod keluar manual</button>
+              </form>
+            </article>
+          )) : <p className="empty-state">Tiada pengguna atau tetamu sedang berada dalam bilik.</p>}
         </div>
       </section>
     </main>

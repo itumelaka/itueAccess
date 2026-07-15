@@ -8,6 +8,22 @@ export type DashboardVisit = {
   location_id: string;
   check_in_at: string;
   check_out_at: string | null;
+  guest_name?: string | null;
+  guest_organization?: string | null;
+  profiles?: {
+    email: string | null;
+    display_name: string | null;
+    category: UserCategory;
+  } | Array<{
+    email: string | null;
+    display_name: string | null;
+    category: UserCategory;
+  }> | null;
+  locations?: {
+    name: string | null;
+  } | Array<{
+    name: string | null;
+  }> | null;
 };
 
 export type DashboardProfile = {
@@ -40,6 +56,17 @@ function dateKey(value: string | Date) {
   return malaysiaDate.format(typeof value === "string" ? new Date(value) : value);
 }
 
+function firstOrSelf<T>(value: T | T[] | null | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function categoryLabel(category: UserCategory, personType: PersonType) {
+  if (personType === "GUEST") return "Tetamu";
+  if (category === "STAFF") return "Staf";
+  if (category === "PELATIH") return "Pelatih";
+  return "Pengguna";
+}
+
 export function summarizeDashboard({
   openVisits,
   activityVisits,
@@ -56,6 +83,7 @@ export function summarizeDashboard({
   let traineeInside = 0;
   let guestInside = 0;
   let overdue = 0;
+  const currentOccupants = [];
 
   for (const visit of openVisits) {
     insideByLocation.set(
@@ -71,7 +99,31 @@ export function summarizeDashboard({
     }
 
     const hoursInside = (now.getTime() - new Date(visit.check_in_at).getTime()) / 3_600_000;
-    if (hoursInside > overdueHours) overdue += 1;
+    const isOverdue = hoursInside > overdueHours;
+    if (isOverdue) overdue += 1;
+
+    const profile = firstOrSelf(visit.profiles);
+    const location = firstOrSelf(visit.locations);
+    const category =
+      visit.person_type === "USER" && visit.profile_id
+        ? (profile?.category ?? categories.get(visit.profile_id) ?? null)
+        : null;
+
+    currentOccupants.push({
+      id: visit.id,
+      name:
+        visit.person_type === "GUEST"
+          ? (visit.guest_name ?? "Tetamu")
+          : (profile?.display_name ?? profile?.email ?? "Pengguna"),
+      categoryLabel: categoryLabel(category, visit.person_type),
+      locationName:
+        location?.name ??
+        locations.find((item) => item.id === visit.location_id)?.name ??
+        "Lokasi tidak diketahui",
+      checkInAt: visit.check_in_at,
+      hoursInside: Math.round(hoursInside * 10) / 10,
+      isOverdue,
+    });
   }
 
   return {
@@ -84,6 +136,8 @@ export function summarizeDashboard({
       (visit) => visit.check_out_at && dateKey(visit.check_out_at) === today,
     ).length,
     overdue,
+    currentOccupants,
+    overdueOccupants: currentOccupants.filter((occupant) => occupant.isOverdue),
     byLocation: locations.map((location) => ({
       ...location,
       inside: insideByLocation.get(location.id) ?? 0,

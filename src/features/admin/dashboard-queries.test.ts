@@ -53,7 +53,7 @@ describe("summarizeDashboard", () => {
 
     expect(
       summarizeDashboard({ openVisits, activityVisits, profiles, locations, now }),
-    ).toEqual({
+    ).toMatchObject({
       inside: 3,
       staffInside: 1,
       traineeInside: 1,
@@ -80,5 +80,65 @@ describe("summarizeDashboard", () => {
     expect(summary.byLocation).toEqual([
       { id: "loc-1", name: "Bilik Server", inside: 0 },
     ]);
+    expect(summary.currentOccupants).toEqual([]);
+    expect(summary.overdueOccupants).toEqual([]);
+  });
+
+  it("returns current occupant details and overdue visits for admin action", () => {
+    const summary = summarizeDashboard({
+      openVisits: [
+        {
+          id: "visit-1",
+          person_type: "USER",
+          profile_id: "staff-1",
+          location_id: "loc-1",
+          check_in_at: "2026-07-14T00:00:00Z",
+          check_out_at: null,
+          profiles: {
+            email: "staff@example.com",
+            display_name: "Staf Satu",
+            category: "STAFF",
+          },
+          locations: { name: "Bilik Server" },
+        },
+        {
+          id: "visit-2",
+          person_type: "GUEST",
+          profile_id: null,
+          location_id: "loc-2",
+          check_in_at: "2026-07-14T11:00:00Z",
+          check_out_at: null,
+          guest_name: "Tetamu Satu",
+          guest_organization: "Vendor",
+          locations: { name: "Auditorium" },
+        },
+      ],
+      activityVisits: [],
+      profiles: [],
+      locations: [],
+      now: new Date("2026-07-14T13:00:00Z"),
+    });
+
+    expect(summary.currentOccupants).toEqual([
+      {
+        id: "visit-1",
+        name: "Staf Satu",
+        categoryLabel: "Staf",
+        locationName: "Bilik Server",
+        checkInAt: "2026-07-14T00:00:00Z",
+        hoursInside: 13,
+        isOverdue: true,
+      },
+      {
+        id: "visit-2",
+        name: "Tetamu Satu",
+        categoryLabel: "Tetamu",
+        locationName: "Auditorium",
+        checkInAt: "2026-07-14T11:00:00Z",
+        hoursInside: 2,
+        isOverdue: false,
+      },
+    ]);
+    expect(summary.overdueOccupants).toEqual([summary.currentOccupants[0]]);
   });
 });

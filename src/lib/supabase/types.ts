@@ -331,6 +331,32 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_check_out_visit: {
+        Args: { p_request_id: string; p_visit_id: string }
+        Returns: {
+          check_in_at: string
+          check_in_request_id: string
+          check_out_at: string | null
+          check_out_request_id: string | null
+          created_at: string
+          guest_name: string | null
+          guest_organization: string | null
+          guest_purpose: string | null
+          id: string
+          location_id: string
+          person_type: Database["public"]["Enums"]["person_type"]
+          profile_id: string | null
+          recorded_by: string
+          source: Database["public"]["Enums"]["visit_source"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       check_in: {
         Args: { p_location_code: string; p_request_id: string }
         Returns: {
