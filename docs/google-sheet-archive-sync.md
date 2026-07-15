@@ -1,194 +1,200 @@
-# Google Sheet Archive Sync Setup
+# Google Sheet Archive Sync
 
-Dokumen ini untuk fasa kecil pertama: deploy Google Apps Script webhook dan test manual append row ke spreadsheet responses lama.
+Dokumen ini menerangkan sync rekod ITU eAccess ke Google Spreadsheet asal.
 
 ## Tujuan
 
-ITU eAccess akan kekal guna Supabase sebagai operasi live. Google Spreadsheet responses lama akan jadi salinan rasmi / arkib. Webhook ini menerima payload daripada ITU eAccess dan append row ke sheet:
+ITU eAccess guna Supabase untuk operasi live yang laju. Google Spreadsheet asal kekal sebagai salinan rasmi / arkib responses.
 
-- `STAFF`
-- `STUDENT`
-- `TETAMU`
+Aliran:
 
-## 1. Buka Apps Script dari spreadsheet asal
+```text
+PWA scan / admin daftar tetamu
+  -> Supabase
+  -> Spreadsheet archive sync
+  -> Google Apps Script webhook
+  -> Google Spreadsheet tab "Form responses 1"
+```
 
-1. Buka Google Spreadsheet responses asal.
-2. Pergi menu `Extensions`.
-3. Pilih `Apps Script`.
-4. Padam code contoh yang ada.
-5. Paste semua kandungan dari:
+## Target sheet sebenar
+
+Webhook Apps Script append semua rekod ke:
+
+```text
+Form responses 1
+```
+
+Tab lain seperti `STAFF`, `STUDENT`, `TETAMU`, `BILIK SERVER`, `AUDITORIUM` dan sebagainya boleh kekal sebagai tab formula/query/report.
+
+## Struktur kolum Form responses 1
+
+| Kolum | Header |
+|---|---|
+| A | Timestamp |
+| B | Email address |
+| C | KATEGORI |
+| D | NAMA STAFF |
+| E | LOKASI STAFF |
+| F | NAMA PELATIH |
+| G | LOKASI PELATIH |
+| H | NAMA TETAMU |
+| I | DARI MANA |
+| J | TUJUAN |
+| K | STATUS |
+
+## Mapping data
+
+### STAFF
+
+| Kolum | Isi |
+|---|---|
+| A | Timestamp |
+| B | Email address |
+| C | `STAFF` |
+| D | Nama staf |
+| E | Lokasi |
+| K | `MASUK` / `KELUAR` |
+
+### PELATIH
+
+| Kolum | Isi |
+|---|---|
+| A | Timestamp |
+| B | Email address |
+| C | `PELATIH` |
+| F | Nama pelatih |
+| G | Lokasi |
+| K | `MASUK` / `KELUAR` |
+
+### TETAMU
+
+| Kolum | Isi |
+|---|---|
+| A | Timestamp |
+| B | Email admin/recorder |
+| C | `TETAMU` |
+| H | Nama tetamu |
+| I | Dari mana / organisasi |
+| J | Tujuan |
+| K | `MASUK` / `KELUAR` |
+
+## Apps Script
+
+Kod penuh disimpan di:
 
 ```text
 google-apps-script/itu-eaccess-archive-webhook.gs
 ```
 
-## 2. Set secret token
+Jika perlu update Apps Script:
 
-Dalam Apps Script:
+1. Buka Google Spreadsheet asal.
+2. Pergi `Extensions` -> `Apps Script`.
+3. Paste kandungan file tersebut.
+4. Save.
+5. `Deploy` -> `Manage deployments` -> edit deployment sedia ada.
+6. Pilih `New version`.
+7. Deploy.
 
-1. Pergi `Project Settings`.
-2. Cari `Script properties`.
-3. Klik `Add script property`.
-4. Isi:
-
-```text
-Property: ITU_EACCESS_SYNC_SECRET
-Value: letak-secret-panjang-sendiri
-```
-
-Contoh value jangan guna dalam production:
-
-```text
-itu-eaccess-test-secret-123
-```
-
-Untuk production nanti, guna secret panjang yang susah diteka.
-
-## 3. Deploy sebagai Web App
-
-1. Klik `Deploy`.
-2. Pilih `New deployment`.
-3. Tekan ikon gear / pilih type.
-4. Pilih `Web app`.
-5. Set:
+Pastikan deployment:
 
 ```text
 Execute as: Me
 Who has access: Anyone
 ```
 
-6. Klik `Deploy`.
-7. Authorize ikut akaun Google yang pegang spreadsheet.
-8. Copy `Web app URL`.
+## Secret
 
-URL biasanya bermula dengan:
+Dalam Apps Script `Project Settings` -> `Script properties`:
 
 ```text
-https://script.google.com/macros/s/...
+Property: ITU_EACCESS_SYNC_SECRET
+Value: secret panjang sendiri
 ```
 
-## 4. Test manual append row
-
-Ganti dua nilai ini dulu:
+Secret yang sama perlu ada di Cloudflare sebagai:
 
 ```text
-WEB_APP_URL = URL Web App Apps Script
-SECRET = secret yang sama dalam Script Properties
+SPREADSHEET_ARCHIVE_SECRET
 ```
 
-### Test STAFF
+Jangan commit secret sebenar ke GitHub.
 
-Run di PowerShell:
+## Cloudflare variables/secrets
+
+Production Worker perlu ada:
+
+```text
+SPREADSHEET_ARCHIVE_WEBHOOK_URL
+SPREADSHEET_ARCHIVE_SECRET
+```
+
+Masukkan melalui Cloudflare dashboard atau Wrangler:
 
 ```powershell
-$url = "WEB_APP_URL?secret=SECRET"
+pnpm wrangler secret put SPREADSHEET_ARCHIVE_WEBHOOK_URL
+pnpm wrangler secret put SPREADSHEET_ARCHIVE_SECRET
+```
+
+Selepas ubah secret/variable, redeploy Worker.
+
+## Manual test webhook
+
+Ganti URL dan secret dengan nilai sebenar di komputer sendiri. Jangan commit.
+
+```powershell
+$webAppUrl = "PASTE_APPS_SCRIPT_WEB_APP_URL"
+$secret = "PASTE_SECRET"
+$uri = "$($webAppUrl)?secret=$secret"
+
 $body = @{
   sheetName = "STAFF"
   values = @(
-    "15-07-2026 10:00:00",
-    "test.staff@example.com",
-    "STAFF",
-    "TEST STAFF",
+    "15-07-2026 09:10:03",
+    "test@itu.local",
+    "STAFF TEST RAW",
     "BILIK SERVER",
-    "MASUK"
-  )
-} | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Method Post -ContentType "application/json" -Body $body
-```
-
-Expected response:
-
-```json
-{"ok":true,"sheetName":"STAFF","appendedColumns":6}
-```
-
-Check sheet `STAFF`. Sepatutnya ada row baru di bawah.
-
-### Test STUDENT / PELATIH
-
-```powershell
-$url = "WEB_APP_URL?secret=SECRET"
-$body = @{
-  sheetName = "STUDENT"
-  values = @(
-    "15-07-2026 10:05:00",
-    "test.pelatih@example.com",
-    "TEST PELATIH",
-    "AUDITORIUM",
     "MASUK",
-    2026,
-    7,
-    ""
+    2026
   )
 } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Method Post -ContentType "application/json" -Body $body
+
+Invoke-RestMethod -Uri $uri -Method Post -ContentType "application/json" -Body $body
 ```
 
 Expected response:
 
-```json
-{"ok":true,"sheetName":"STUDENT","appendedColumns":8}
+```text
+ok              : True
+targetSheet     : Form responses 1
+sourceSheetName : STAFF
+appendedColumns : 11
 ```
 
-### Test TETAMU
+Kemudian semak row baru di `Form responses 1`.
 
-```powershell
-$url = "WEB_APP_URL?secret=SECRET"
-$body = @{
-  sheetName = "TETAMU"
-  values = @(
-    "15-07-2026 10:10:00",
-    "admin@example.com",
-    "TEST TETAMU",
-    "TEST ORGANISASI",
-    "TEST TUJUAN",
-    "MASUK",
-    2026,
-    7,
-    ""
-  )
-} | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Method Post -ContentType "application/json" -Body $body
+## Troubleshooting
+
+### Data masuk Supabase tapi tidak masuk Spreadsheet
+
+Semak:
+
+1. Cloudflare secret `SPREADSHEET_ARCHIVE_WEBHOOK_URL`.
+2. Cloudflare secret `SPREADSHEET_ARCHIVE_SECRET`.
+3. Apps Script deployment masih aktif.
+4. Apps Script secret `ITU_EACCESS_SYNC_SECRET`.
+5. Webhook manual test berjaya.
+
+### Status masuk kolum salah
+
+Pastikan Apps Script dalam spreadsheet ialah versi terbaru daripada:
+
+```text
+google-apps-script/itu-eaccess-archive-webhook.gs
 ```
 
-Expected response:
+Status mesti masuk kolum `K`.
 
-```json
-{"ok":true,"sheetName":"TETAMU","appendedColumns":9}
-```
+### Tarikh pelik
 
-## 5. Test secret salah
-
-Run:
-
-```powershell
-$url = "WEB_APP_URL?secret=SALAH"
-$body = @{ sheetName = "STAFF"; values = @("test") } | ConvertTo-Json
-Invoke-RestMethod -Uri $url -Method Post -ContentType "application/json" -Body $body
-```
-
-Expected response:
-
-```json
-{"ok":false,"error":"Unauthorized"}
-```
-
-## 6. Lepas test berjaya
-
-Baru kita sambung fasa eAccess:
-
-1. Tambah `SPREADSHEET_ARCHIVE_WEBHOOK_URL` dalam Cloudflare.
-2. Tambah `SPREADSHEET_ARCHIVE_SECRET` dalam Cloudflare.
-3. Coding eAccess untuk call webhook selepas Supabase berjaya simpan rekod.
-
-Jangan commit atau letak real secret dalam GitHub.
-
-## 7. Production deployment order
-
-1. Deploy Apps Script Web App dan copy URL.
-2. Add Cloudflare Worker environment variables:
-   - `SPREADSHEET_ARCHIVE_WEBHOOK_URL`
-   - `SPREADSHEET_ARCHIVE_SECRET`
-3. Redeploy ITU eAccess dari GitHub/Cloudflare.
-4. Test satu rekod staf/pelatih dan confirm row append ke `STAFF` atau `STUDENT`.
-5. Test satu rekod tetamu dan confirm row append ke `TETAMU`.
+Aplikasi format timestamp ikut timezone Malaysia (`Asia/Kuala_Lumpur`) sebelum hantar ke spreadsheet.
