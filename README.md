@@ -21,6 +21,8 @@ PWA rekod keluar masuk bilik/lokasi ITU dengan Google login, dashboard admin, QR
 - Tetamu didaftarkan oleh admin di kaunter.
 - QR lokasi merekodkan masuk/keluar.
 - Dashboard admin memaparkan ringkasan semasa, pengguna, lokasi, tetamu dan sejarah.
+- Dashboard admin memaparkan senarai penghuni semasa dan rekod lebih 12 jam.
+- Admin boleh rekod keluar manual jika pengguna/tetamu lupa scan keluar.
 - PWA boleh dipasang tanpa Play Store.
 
 ## Stack
@@ -70,6 +72,12 @@ Untuk test subset yang selalu kita guna:
 pnpm test:run src/features/admin/admin-actions.test.ts src/features/admin/admin-inputs.test.ts src/features/spreadsheet/archive-sync.test.ts src/features/visits/visit-actions.test.ts
 ```
 
+Untuk perubahan dashboard admin:
+
+```powershell
+pnpm test:run src/features/admin/dashboard-queries.test.ts src/features/admin/admin-actions.test.ts
+```
+
 ## Environment variables
 
 `.env.local` diperlukan untuk local:
@@ -106,4 +114,5 @@ Local deploy dari Windows pernah terkena isu permission OpenNext. Jika mahu loca
 
 - [Project overview](docs/project-overview.md)
 - [Google Sheet archive sync](docs/google-sheet-archive-sync.md)
+- [Admin operations runbook](docs/runbooks/admin-operations.md)
 - [Backup restore runbook](docs/runbooks/backup-restore.md)

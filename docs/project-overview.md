@@ -61,6 +61,9 @@ Jika sync spreadsheet gagal, operasi Supabase masih kekal sebagai rekod live. Go
 - Jadikan pengguna lain admin.
 - Urus lokasi dan QR.
 - Daftar dan keluarkan tetamu.
+- Pantau pengguna/tetamu yang masih berada dalam bilik.
+- Semak rekod yang melebihi 12 jam.
+- Rekod keluar manual untuk pengguna/tetamu yang lupa scan keluar.
 - Lihat sejarah.
 
 ### USER
@@ -123,6 +126,24 @@ Kolum raw:
 
 Tab seperti `STAFF`, `STUDENT`, `TETAMU`, dan tab lokasi boleh kekal sebagai query/report tab yang tarik data daripada `Form responses 1`.
 
+## Dashboard admin
+
+Dashboard admin mengandungi tiga aras pemantauan:
+
+1. Kad ringkasan — jumlah dalam bilik, staf, pelatih, tetamu, rekod masuk/keluar hari ini, rekod lebih 12 jam dan akaun menunggu kelulusan.
+2. Penghuni semasa mengikut lokasi — bar ringkas untuk melihat lokasi mana yang sedang digunakan.
+3. Senarai operasi — panel `Lebih 12 jam` dan `Masih berada dalam bilik`.
+
+Panel `Masih berada dalam bilik` menyenaraikan rekod lawatan yang belum ada `check_out_at`.
+
+Panel `Lebih 12 jam` ialah subset kepada senarai semasa yang sudah melepasi had 12 jam. Ini membantu admin mengesan pengguna yang mungkin lupa scan keluar.
+
+Kedua-dua panel menyediakan butang `Rekod keluar manual`. Tindakan ini:
+
+1. Menutup rekod lawatan terbuka di Supabase melalui RPC `admin_check_out_visit`.
+2. Menghantar salinan `KELUAR` ke Google Spreadsheet archive.
+3. Refresh dashboard admin, sejarah dan kaunter tetamu.
+
 ## Deployment
 
 Production deploy:
@@ -159,9 +180,15 @@ Subset pantas:
 pnpm test:run src/features/admin/admin-actions.test.ts src/features/admin/admin-inputs.test.ts src/features/spreadsheet/archive-sync.test.ts src/features/visits/visit-actions.test.ts
 ```
 
+Subset dashboard admin:
+
+```powershell
+pnpm test:run src/features/admin/dashboard-queries.test.ts src/features/admin/admin-actions.test.ts
+```
+
 ## Roadmap cadangan
 
-1. Kemaskan paparan mobile dashboard admin.
+1. Kemaskan paparan mobile dashboard admin jika senarai operasi semakin panjang.
 2. Tambah carian dan filter sejarah.
 3. Tambah laporan ringkas ikut tarikh/lokasi/kategori.
 4. Tambah notifikasi atau badge jelas untuk pending approval.

@@ -9,7 +9,7 @@ ITU eAccess guna Supabase untuk operasi live yang laju. Google Spreadsheet asal 
 Aliran:
 
 ```text
-PWA scan / admin daftar tetamu
+PWA scan / admin daftar tetamu / admin keluar manual
   -> Supabase
   -> Spreadsheet archive sync
   -> Google Apps Script webhook
@@ -77,6 +77,31 @@ Tab lain seperti `STAFF`, `STUDENT`, `TETAMU`, `BILIK SERVER`, `AUDITORIUM` dan 
 | I | Dari mana / organisasi |
 | J | Tujuan |
 | K | `MASUK` / `KELUAR` |
+
+## Rekod keluar manual admin
+
+Jika pengguna atau tetamu lupa scan keluar, admin boleh tutup rekod melalui dashboard admin.
+
+Aliran sync:
+
+```text
+Admin tekan "Rekod keluar manual"
+  -> RPC Supabase admin_check_out_visit
+  -> visits.check_out_at dikemaskini
+  -> archive sync hantar status KELUAR
+  -> Google Spreadsheet Form responses 1
+```
+
+Untuk akaun Google login:
+
+- `STAFF` masuk mapping STAFF.
+- `PELATIH` masuk mapping PELATIH.
+- Akaun admin tanpa kategori akan dianggap `STAFF` oleh archive resolver.
+
+Untuk tetamu:
+
+- Nama, organisasi dan tujuan diambil daripada rekod tetamu asal.
+- Email kolum B ialah email admin/recorder.
 
 ## Apps Script
 
