@@ -73,6 +73,18 @@ export async function approveUser(formData: FormData) {
   revalidatePath("/admin/users");
 }
 
+export async function rejectUser(formData: FormData) {
+  const profileId = text(formData, "profileId");
+  if (!profileId) throw new Error("Pengguna tidak sah");
+  const supabase = await adminClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ status: "SUSPENDED" })
+    .eq("id", profileId);
+  ensureSuccess(error);
+  revalidatePath("/admin/users");
+}
+
 export async function setUserStatus(formData: FormData) {
   const profileId = text(formData, "profileId");
   const status = text(formData, "status");
