@@ -6,5 +6,5 @@ export function qrDownloadFileName(name: string | null | undefined, code = "LOKA
     .replace(/\s+/g, " ")
     .trim();
 
-  return `QR ${safeName || "LOKASI"}.png`;
+  return `QR ${safeName || "LOKASI"}.svg`;
 }
