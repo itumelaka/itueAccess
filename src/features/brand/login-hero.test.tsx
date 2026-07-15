@@ -11,6 +11,7 @@ describe("LoginHero", () => {
     expect(screen.getByRole("heading", { name: "Rekod Keluar & Masuk" })).toBeTruthy();
     expect(screen.getByText("Sistem rekod akses bilik ITU yang mudah, selamat dan teratur.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Log masuk dengan Google" })).toBeTruthy();
+    expect(screen.getByText(/Log masuk Google disahkan melalui Supabase Auth/)).toBeTruthy();
     expect(screen.getByRole("link", { name: "Pasang sebagai aplikasi" }).getAttribute("href")).toBe("/install");
     expect(screen.getByText("Masuk mudah, rekod teratur.")).toBeTruthy();
   });

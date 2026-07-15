@@ -37,6 +37,7 @@ export function LoginHero() {
             <p className="login-summary">Sistem rekod akses bilik ITU yang mudah, selamat dan teratur.</p>
             <div className="login-action">
               <GoogleLoginButton />
+              <p className="login-auth-note">Log masuk Google disahkan melalui Supabase Auth, penyedia keselamatan yang digunakan oleh ITU eAccess. Sistem hanya membaca nama dan emel untuk tujuan kelulusan akses.</p>
               <a href="/install" className="login-install-link">Pasang sebagai aplikasi</a>
             </div>
             <p className="login-tagline">Masuk mudah, rekod teratur.</p>
