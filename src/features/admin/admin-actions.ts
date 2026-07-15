@@ -13,6 +13,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   parseGuestRegistration,
   parseUserApproval,
+  parseUserCategoryUpdate,
   toLocationCode,
 } from "./admin-inputs";
 
@@ -101,6 +102,20 @@ export async function setUserStatus(formData: FormData) {
     .from("profiles")
     .update({ status: status as "ACTIVE" | "SUSPENDED" })
     .eq("id", profileId);
+  ensureSuccess(error);
+  revalidatePath("/admin/users");
+}
+
+export async function updateUserCategory(formData: FormData) {
+  const input = parseUserCategoryUpdate({
+    profileId: text(formData, "profileId"),
+    category: text(formData, "category"),
+  });
+  const supabase = await adminClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ category: input.category || null })
+    .eq("id", input.profileId);
   ensureSuccess(error);
   revalidatePath("/admin/users");
 }

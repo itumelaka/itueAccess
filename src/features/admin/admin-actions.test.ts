@@ -24,7 +24,7 @@ vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("@/features/auth/require-profile", () => ({ requireProfile: mocks.requireProfile }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: mocks.createSupabaseServerClient }));
 
-import { approveUser, rejectUser } from "./admin-actions";
+import { approveUser, rejectUser, updateUserCategory } from "./admin-actions";
 
 describe("approveUser", () => {
   it("activates the profile with selected category and corrected full name", async () => {
@@ -59,5 +59,32 @@ describe("rejectUser", () => {
     expect(mocks.update).toHaveBeenCalledWith({ status: "SUSPENDED" });
     expect(mocks.eq).toHaveBeenCalledWith("id", "profile-1");
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/users");
+  });
+});
+
+describe("updateUserCategory", () => {
+  it("updates a registered profile category and refreshes the users admin page", async () => {
+    const formData = new FormData();
+    formData.set("profileId", "profile-2");
+    formData.set("category", "PELATIH");
+
+    await updateUserCategory(formData);
+
+    expect(mocks.requireProfile).toHaveBeenCalledWith("ADMIN");
+    expect(mocks.from).toHaveBeenCalledWith("profiles");
+    expect(mocks.update).toHaveBeenCalledWith({ category: "PELATIH" });
+    expect(mocks.eq).toHaveBeenCalledWith("id", "profile-2");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/users");
+  });
+
+  it("clears a registered profile category when no category is selected", async () => {
+    const formData = new FormData();
+    formData.set("profileId", "profile-3");
+    formData.set("category", "");
+
+    await updateUserCategory(formData);
+
+    expect(mocks.update).toHaveBeenCalledWith({ category: null });
+    expect(mocks.eq).toHaveBeenCalledWith("id", "profile-3");
   });
 });

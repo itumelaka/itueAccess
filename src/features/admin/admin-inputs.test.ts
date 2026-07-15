@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseGuestRegistration,
   parseUserApproval,
+  parseUserCategoryUpdate,
   toLocationCode,
 } from "./admin-inputs";
 
@@ -21,6 +22,20 @@ describe("admin input validation", () => {
     expect(() =>
       parseUserApproval({ profileId: "profile-1", category: "STAFF", displayName: "" }),
     ).toThrow("Nama penuh dan kategori pengguna diperlukan");
+  });
+
+  it("accepts a registered user category update", () => {
+    expect(parseUserCategoryUpdate({ profileId: "profile-1", category: "PELATIH" })).toEqual({
+      profileId: "profile-1",
+      category: "PELATIH",
+    });
+  });
+
+  it("accepts an empty registered user category update", () => {
+    expect(parseUserCategoryUpdate({ profileId: "profile-1", category: "" })).toEqual({
+      profileId: "profile-1",
+      category: "",
+    });
   });
 
   it("accepts a complete guest registration", () => {

@@ -8,6 +8,11 @@ const approvalSchema = z.object({
   }),
 });
 
+const categoryUpdateSchema = z.object({
+  profileId: z.string().min(1),
+  category: z.union([z.literal(""), z.enum(["STAFF", "PELATIH"])]),
+});
+
 const guestSchema = z.object({
   name: z.string().trim().min(1),
   organization: z.string().trim().min(1),
@@ -33,6 +38,15 @@ export function parseUserApproval(input: {
 }) {
   const result = approvalSchema.safeParse(input);
   if (!result.success) throw new Error("Nama penuh dan kategori pengguna diperlukan");
+  return result.data;
+}
+
+export function parseUserCategoryUpdate(input: {
+  profileId: string;
+  category: string;
+}) {
+  const result = categoryUpdateSchema.safeParse(input);
+  if (!result.success) throw new Error("Kategori pengguna tidak sah");
   return result.data;
 }
 

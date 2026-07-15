@@ -1,4 +1,4 @@
-import { approveUser, promoteUser, rejectUser, setUserStatus } from "@/features/admin/admin-actions";
+import { approveUser, promoteUser, rejectUser, setUserStatus, updateUserCategory } from "@/features/admin/admin-actions";
 import { requireProfile } from "@/features/auth/require-profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -15,7 +15,7 @@ export default async function AdminUsersPage() {
     </div></section>
     <section className="admin-panel"><div className="panel-heading"><h2>Pengguna berdaftar</h2></div><div className="admin-list">
       {approved.map((profile) => <article className="user-row user-row--stack" key={profile.id}><div><strong>{profile.display_name}</strong><small>{profile.email}</small><div className="tag-row"><span>{profile.category ?? "Tiada kategori"}</span><span>{profile.role}</span><span className={`status status--${profile.status.toLowerCase()}`}>{profile.status}</span></div></div>
-        {profile.id !== currentAdmin.id && <div className="user-actions"><form action={setUserStatus}><input type="hidden" name="profileId" value={profile.id}/><input type="hidden" name="status" value={profile.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED"}/><button className="admin-secondary" type="submit">{profile.status === "SUSPENDED" ? "Aktifkan" : "Gantung"}</button></form>
+        {profile.id !== currentAdmin.id && <div className="user-actions"><form action={updateUserCategory} className="inline-form"><input type="hidden" name="profileId" value={profile.id}/><select name="category" defaultValue={profile.category ?? ""} aria-label={`Kategori ${profile.display_name}`}><option value="">Tiada kategori</option><option value="STAFF">Staf</option><option value="PELATIH">Pelatih</option></select><button className="admin-secondary" type="submit">Simpan kategori</button></form><form action={setUserStatus}><input type="hidden" name="profileId" value={profile.id}/><input type="hidden" name="status" value={profile.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED"}/><button className="admin-secondary" type="submit">{profile.status === "SUSPENDED" ? "Aktifkan" : "Gantung"}</button></form>
         {profile.role === "USER" && <details><summary>Jadikan admin</summary><form action={promoteUser} className="confirm-form"><input type="hidden" name="profileId" value={profile.id}/><label>Taip e-mel untuk sahkan<input name="confirmation" type="email" placeholder={profile.email} required/></label><button className="admin-danger" type="submit">Sahkan kenaikan peranan</button></form></details>}</div>}
       </article>)}
     </div></section>
