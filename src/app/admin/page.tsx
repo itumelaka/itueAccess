@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { adminCheckOutVisit } from "@/features/admin/admin-actions";
-import { requireProfile } from "@/features/auth/require-profile";
+import { checkOutUser } from "@/features/admin/admin-actions";
 import { summarizeDashboard } from "@/features/admin/dashboard-queries";
+import { requireProfile } from "@/features/auth/require-profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const malaysiaDateTime = new Intl.DateTimeFormat("ms-MY", {
@@ -18,19 +18,62 @@ function formatCheckIn(value: string) {
   return malaysiaDateTime.format(new Date(value));
 }
 
+function UserCheckoutForm({
+  visitId,
+  overdue = false,
+}: {
+  visitId: string;
+  overdue?: boolean;
+}) {
+  return (
+    <form action={checkOutUser} className="admin-force-checkout">
+      <input type="hidden" name="visitId" value={visitId} />
+      <label>
+        Sebab checkout
+        <input
+          name="reason"
+          minLength={5}
+          maxLength={240}
+          placeholder="Contoh: Terlupa daftar keluar"
+          required
+        />
+      </label>
+      <button className={overdue ? "admin-danger" : "admin-secondary"} type="submit">
+        Checkout oleh admin
+      </button>
+    </form>
+  );
+}
+
 export default async function AdminDashboardPage() {
   const { profile } = await requireProfile("ADMIN");
   const supabase = await createSupabaseServerClient();
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 86_400_000).toISOString();
 
-  const [openResult, activityResult, profilesResult, locationsResult, pendingResult] = await Promise.all([
-    supabase.from("visits").select("id, person_type, profile_id, location_id, check_in_at, check_out_at, guest_name, guest_organization, locations(name), profiles!visits_profile_id_fkey(email, display_name, category)").is("check_out_at", null).order("check_in_at", { ascending: false }).limit(500),
-    supabase.from("visits").select("id, person_type, profile_id, location_id, check_in_at, check_out_at").gte("check_in_at", thirtyDaysAgo).order("check_in_at", { ascending: false }).limit(1000),
-    supabase.from("profiles").select("id, category"),
-    supabase.from("locations").select("id, name").eq("is_active", true).order("name"),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("status", "PENDING"),
-  ]);
+  const [openResult, activityResult, profilesResult, locationsResult, pendingResult] =
+    await Promise.all([
+      supabase
+        .from("visits")
+        .select(
+          "id, person_type, profile_id, location_id, check_in_at, check_out_at, guest_name, guest_organization, locations(name), profiles!visits_profile_id_fkey(email, display_name, category)",
+        )
+        .is("check_out_at", null)
+        .order("check_in_at", { ascending: false })
+        .limit(500),
+      supabase
+        .from("visits")
+        .select("id, person_type, profile_id, location_id, check_in_at, check_out_at")
+        .gte("check_in_at", thirtyDaysAgo)
+        .order("check_in_at", { ascending: false })
+        .limit(1000),
+      supabase.from("profiles").select("id, category"),
+      supabase.from("locations").select("id, name").eq("is_active", true).order("name"),
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "PENDING"),
+    ]);
 
   const summary = summarizeDashboard({
     openVisits: openResult.data ?? [],
@@ -48,26 +91,49 @@ export default async function AdminDashboardPage() {
     ["Rekod masuk hari ini", summary.openedToday, "blue"],
     ["Rekod keluar hari ini", summary.closedToday, "live"],
     ["Lebih 12 jam", summary.overdue, summary.overdue ? "red" : "blue"],
-    ["Menunggu kelulusan", pendingResult.count ?? 0, (pendingResult.count ?? 0) ? "yellow" : "blue"],
+    [
+      "Menunggu kelulusan",
+      pendingResult.count ?? 0,
+      (pendingResult.count ?? 0) ? "yellow" : "blue",
+    ],
   ] as const;
 
   return (
     <main>
       <header className="admin-page-header">
-        <div><p className="admin-kicker">Dashboard admin</p><h1>Selamat datang, {profile.display_name}</h1><p>Ringkasan langsung akses bilik ITU.</p></div>
+        <div>
+          <p className="admin-kicker">Dashboard admin</p>
+          <h1>Selamat datang, {profile.display_name}</h1>
+          <p>Ringkasan langsung akses bilik ITU.</p>
+        </div>
         <Link className="admin-primary" href="/admin/guests">+ Daftar tetamu</Link>
       </header>
+
       <section className="metric-grid" aria-label="Ringkasan akses">
-        {cards.map(([label, value, tone]) => <article className={`metric-card metric-card--${tone}`} key={label}><span>{label}</span><strong>{value}</strong></article>)}
+        {cards.map(([label, value, tone]) => (
+          <article className={`metric-card metric-card--${tone}`} key={label}>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </article>
+        ))}
       </section>
+
       <section className="admin-panel">
-        <div className="panel-heading"><div><p className="admin-kicker">Penghuni semasa</p><h2>Mengikut lokasi</h2></div><Link href="/admin/history">Lihat sejarah →</Link></div>
+        <div className="panel-heading">
+          <div><p className="admin-kicker">Penghuni semasa</p><h2>Mengikut lokasi</h2></div>
+          <Link href="/admin/history">Lihat sejarah →</Link>
+        </div>
         <div className="location-bars">
           {summary.byLocation.length ? summary.byLocation.map((location) => (
-            <div className="location-bar" key={location.id}><span>{location.name}</span><div><i style={{ width: `${Math.min(100, location.inside * 14)}%` }} /></div><strong>{location.inside}</strong></div>
+            <div className="location-bar" key={location.id}>
+              <span>{location.name}</span>
+              <div><i style={{ width: `${Math.min(100, location.inside * 14)}%` }} /></div>
+              <strong>{location.inside}</strong>
+            </div>
           )) : <p>Belum ada lokasi aktif.</p>}
         </div>
       </section>
+
       <section className="admin-panel">
         <div className="panel-heading">
           <div><p className="admin-kicker">Perlu perhatian</p><h2>Lebih 12 jam</h2></div>
@@ -81,14 +147,16 @@ export default async function AdminDashboardPage() {
                 <small>{visit.categoryLabel} · {visit.locationName}</small>
                 <span>Masuk: {formatCheckIn(visit.checkInAt)} · {visit.hoursInside.toFixed(1)} jam</span>
               </div>
-              <form action={adminCheckOutVisit}>
-                <input type="hidden" name="visitId" value={visit.id} />
-                <button className="admin-danger" type="submit">Rekod keluar manual</button>
-              </form>
+              {visit.personType === "USER" ? (
+                <UserCheckoutForm visitId={visit.id} overdue />
+              ) : (
+                <Link className="admin-secondary" href="/admin/guests">Urus tetamu</Link>
+              )}
             </article>
           )) : <p className="empty-state">Tiada rekod melebihi 12 jam.</p>}
         </div>
       </section>
+
       <section className="admin-panel">
         <div className="panel-heading">
           <div><p className="admin-kicker">Senarai semasa</p><h2>Masih berada dalam bilik</h2></div>
@@ -102,10 +170,11 @@ export default async function AdminDashboardPage() {
                 <small>{visit.categoryLabel} · {visit.locationName}</small>
                 <span>Masuk: {formatCheckIn(visit.checkInAt)} · {visit.hoursInside.toFixed(1)} jam</span>
               </div>
-              <form action={adminCheckOutVisit}>
-                <input type="hidden" name="visitId" value={visit.id} />
-                <button className="admin-secondary" type="submit">Rekod keluar manual</button>
-              </form>
+              {visit.personType === "USER" ? (
+                <UserCheckoutForm visitId={visit.id} />
+              ) : (
+                <Link className="admin-secondary" href="/admin/guests">Urus tetamu</Link>
+              )}
             </article>
           )) : <p className="empty-state">Tiada pengguna atau tetamu sedang berada dalam bilik.</p>}
         </div>

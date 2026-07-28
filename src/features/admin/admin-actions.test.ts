@@ -35,7 +35,7 @@ vi.mock("@/features/spreadsheet/archive-sync", () => ({
   syncArchivePayload: mocks.syncArchivePayload,
 }));
 
-import { adminCheckOutVisit, approveUser, rejectUser, updateUserCategory } from "./admin-actions";
+import { approveUser, checkOutUser, rejectUser, updateUserCategory } from "./admin-actions";
 
 describe("approveUser", () => {
   it("activates the profile with selected category and corrected full name", async () => {
@@ -100,8 +100,8 @@ describe("updateUserCategory", () => {
   });
 });
 
-describe("adminCheckOutVisit", () => {
-  it("closes an open visit through the admin RPC and refreshes dashboard pages", async () => {
+describe("checkOutUser", () => {
+  it("closes an open user visit with a reason and refreshes dashboard pages", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: { id: "visit-1", check_out_at: "2026-07-15T01:00:00Z" },
       error: null,
@@ -130,13 +130,15 @@ describe("adminCheckOutVisit", () => {
     mocks.createSupabaseServerClient.mockResolvedValueOnce({ rpc, from });
     const formData = new FormData();
     formData.set("visitId", "visit-1");
+    formData.set("reason", "Terlupa daftar keluar");
 
-    await adminCheckOutVisit(formData);
+    await checkOutUser(formData);
 
     expect(mocks.requireProfile).toHaveBeenCalledWith("ADMIN");
-    expect(rpc).toHaveBeenCalledWith("admin_check_out_visit", {
+    expect(rpc).toHaveBeenCalledWith("admin_check_out_user", {
       p_visit_id: "visit-1",
       p_request_id: expect.any(String),
+      p_reason: "Terlupa daftar keluar",
     });
     expect(from).toHaveBeenCalledWith("visits");
     expect(mocks.archiveUserMovement).toHaveBeenCalledWith({

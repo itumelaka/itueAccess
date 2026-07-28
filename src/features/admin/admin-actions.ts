@@ -5,11 +5,10 @@ import { revalidatePath } from "next/cache";
 
 import { requireProfile } from "@/features/auth/require-profile";
 import {
-  archiveUserMovement,
   archiveGuestMovement,
+  archiveUserMovement,
   syncArchivePayload,
 } from "@/features/spreadsheet/archive-sync";
-import { resolveArchiveCategory } from "@/features/spreadsheet/archive-category";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import {
@@ -40,25 +39,6 @@ type GuestVisitRow = {
   guest_purpose: string | null;
 };
 
-type ManualVisitRow = GuestVisitRow & {
-  person_type: "USER" | "GUEST";
-  locations: { name: string | null } | { name: string | null }[] | null;
-  profiles:
-    | {
-        email: string | null;
-        display_name: string | null;
-        category: "STAFF" | "PELATIH" | null;
-        role: "ADMIN" | "USER" | null;
-      }
-    | Array<{
-        email: string | null;
-        display_name: string | null;
-        category: "STAFF" | "PELATIH" | null;
-        role: "ADMIN" | "USER" | null;
-      }>
-    | null;
-};
-
 async function syncGuestVisitArchive(input: {
   visit: GuestVisitRow | null;
   status: "MASUK" | "KELUAR";
@@ -77,43 +57,6 @@ async function syncGuestVisitArchive(input: {
       guestName: input.visit.guest_name,
       organization: input.visit.guest_organization,
       purpose: input.visit.guest_purpose,
-    }),
-  );
-}
-
-function firstOrSelf<T>(value: T | T[] | null | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-async function syncManualVisitArchive(input: {
-  visit: ManualVisitRow | null;
-  recorderEmail: string;
-}) {
-  if (!input.visit) return;
-
-  if (input.visit.person_type === "GUEST") {
-    await syncGuestVisitArchive({
-      visit: input.visit,
-      status: "KELUAR",
-      recorderEmail: input.recorderEmail,
-    });
-    return;
-  }
-
-  const profile = firstOrSelf(input.visit.profiles);
-  const location = firstOrSelf(input.visit.locations);
-
-  await syncArchivePayload(
-    archiveUserMovement({
-      status: "KELUAR",
-      occurredAt: input.visit.check_out_at ?? input.visit.check_in_at,
-      email: profile?.email ?? "",
-      displayName: profile?.display_name ?? "",
-      category: resolveArchiveCategory({
-        visitCategory: profile?.category,
-        profileRole: profile?.role,
-      }),
-      locationName: location?.name ?? "",
     }),
   );
 }
@@ -266,33 +209,54 @@ export async function checkOutGuest(formData: FormData) {
   revalidatePath("/admin");
 }
 
-export async function adminCheckOutVisit(formData: FormData) {
+export async function checkOutUser(formData: FormData) {
   const visitId = text(formData, "visitId");
-  if (!visitId) throw new Error("Rekod lawatan tidak ditemui");
+  const reason = text(formData, "reason");
+  if (!visitId) throw new Error("Rekod pengguna tidak ditemui");
+  if (reason.length < 5) {
+    throw new Error("Sebab checkout mesti sekurang-kurangnya 5 aksara");
+  }
 
-  const { profile } = await requireProfile("ADMIN");
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("admin_check_out_visit", {
-    p_visit_id: visitId,
-    p_request_id: randomUUID(),
-  });
-  ensureSuccess(error);
+  const supabase = await adminClient();
+  const { data: checkedOutVisit, error: checkoutError } = await supabase.rpc(
+    "admin_check_out_user",
+    {
+      p_visit_id: visitId,
+      p_request_id: randomUUID(),
+      p_reason: reason,
+    },
+  );
+  ensureSuccess(checkoutError);
+  if (!checkedOutVisit) throw new Error("Rekod pengguna tidak ditemui");
 
   const { data: visit, error: readError } = await supabase
     .from("visits")
     .select(
-      "person_type, check_in_at, check_out_at, guest_name, guest_organization, guest_purpose, locations(name), profiles!visits_profile_id_fkey(email, display_name, category, role)",
+      "check_in_at, check_out_at, locations(name), profiles!visits_profile_id_fkey(email, display_name, category)",
     )
-    .eq("id", visitId)
+    .eq("id", checkedOutVisit.id)
     .single();
   ensureSuccess(readError);
 
-  await syncManualVisitArchive({
-    visit: visit as ManualVisitRow | null,
-    recorderEmail: profile.email,
-  });
+  if (visit) {
+    const visitProfile = Array.isArray(visit.profiles)
+      ? visit.profiles[0]
+      : visit.profiles;
+    const visitLocation = Array.isArray(visit.locations)
+      ? visit.locations[0]
+      : visit.locations;
+    await syncArchivePayload(
+      archiveUserMovement({
+        status: "KELUAR",
+        occurredAt: visit.check_out_at ?? visit.check_in_at,
+        email: visitProfile?.email ?? "",
+        displayName: visitProfile?.display_name ?? "",
+        category: visitProfile?.category ?? null,
+        locationName: visitLocation?.name ?? "",
+      }),
+    );
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/history");
-  revalidatePath("/admin/guests");
 }

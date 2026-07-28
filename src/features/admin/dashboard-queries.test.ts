@@ -122,6 +122,7 @@ describe("summarizeDashboard", () => {
     expect(summary.currentOccupants).toEqual([
       {
         id: "visit-1",
+        personType: "USER",
         name: "Staf Satu",
         categoryLabel: "Staf",
         locationName: "Bilik Server",
@@ -131,6 +132,7 @@ describe("summarizeDashboard", () => {
       },
       {
         id: "visit-2",
+        personType: "GUEST",
         name: "Tetamu Satu",
         categoryLabel: "Tetamu",
         locationName: "Auditorium",

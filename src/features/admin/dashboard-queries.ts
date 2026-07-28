@@ -111,6 +111,7 @@ export function summarizeDashboard({
 
     currentOccupants.push({
       id: visit.id,
+      personType: visit.person_type,
       name:
         visit.person_type === "GUEST"
           ? (visit.guest_name ?? "Tetamu")

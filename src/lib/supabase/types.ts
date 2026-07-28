@@ -78,6 +78,35 @@ export type Database = {
           },
         ]
       }
+      guest_self_service_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          token_hash: string
+          visit_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          token_hash: string
+          visit_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          token_hash?: string
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_self_service_tokens_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: true
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       import_batches: {
         Row: {
           created_at: string
@@ -241,7 +270,7 @@ export type Database = {
           location_id: string
           person_type: Database["public"]["Enums"]["person_type"]
           profile_id: string | null
-          recorded_by: string
+          recorded_by: string | null
           source: Database["public"]["Enums"]["visit_source"]
           updated_at: string
         }
@@ -258,7 +287,7 @@ export type Database = {
           location_id: string
           person_type: Database["public"]["Enums"]["person_type"]
           profile_id?: string | null
-          recorded_by: string
+          recorded_by?: string | null
           source: Database["public"]["Enums"]["visit_source"]
           updated_at?: string
         }
@@ -275,7 +304,7 @@ export type Database = {
           location_id?: string
           person_type?: Database["public"]["Enums"]["person_type"]
           profile_id?: string | null
-          recorded_by?: string
+          recorded_by?: string | null
           source?: Database["public"]["Enums"]["visit_source"]
           updated_at?: string
         }
@@ -308,6 +337,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_check_out_user: {
+        Args: {
+          p_reason: string
+          p_request_id: string
+          p_visit_id: string
+        }
+        Returns: Database["public"]["Tables"]["visits"]["Row"]
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_check_out_guest: {
         Args: { p_request_id: string; p_visit_id: string }
         Returns: {
@@ -323,7 +366,7 @@ export type Database = {
           location_id: string
           person_type: Database["public"]["Enums"]["person_type"]
           profile_id: string | null
-          recorded_by: string
+          recorded_by: string | null
           source: Database["public"]["Enums"]["visit_source"]
           updated_at: string
         }
@@ -334,25 +377,12 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      admin_check_out_visit: {
-        Args: { p_request_id: string; p_visit_id: string }
-        Returns: {
-          check_in_at: string
-          check_in_request_id: string
-          check_out_at: string | null
-          check_out_request_id: string | null
-          created_at: string
-          guest_name: string | null
-          guest_organization: string | null
-          guest_purpose: string | null
-          id: string
-          location_id: string
-          person_type: Database["public"]["Enums"]["person_type"]
-          profile_id: string | null
-          recorded_by: string
-          source: Database["public"]["Enums"]["visit_source"]
-          updated_at: string
+      check_out_guest_self_service: {
+        Args: {
+          p_request_id: string
+          p_token_hash: string
         }
+        Returns: Database["public"]["Tables"]["visits"]["Row"]
         SetofOptions: {
           from: "*"
           to: "visits"
@@ -375,7 +405,7 @@ export type Database = {
           location_id: string
           person_type: Database["public"]["Enums"]["person_type"]
           profile_id: string | null
-          recorded_by: string
+          recorded_by: string | null
           source: Database["public"]["Enums"]["visit_source"]
           updated_at: string
         }
@@ -401,7 +431,7 @@ export type Database = {
           location_id: string
           person_type: Database["public"]["Enums"]["person_type"]
           profile_id: string | null
-          recorded_by: string
+          recorded_by: string | null
           source: Database["public"]["Enums"]["visit_source"]
           updated_at: string
         }
@@ -438,10 +468,27 @@ export type Database = {
           location_id: string
           person_type: Database["public"]["Enums"]["person_type"]
           profile_id: string | null
-          recorded_by: string
+          recorded_by: string | null
           source: Database["public"]["Enums"]["visit_source"]
           updated_at: string
         }
+        SetofOptions: {
+          from: "*"
+          to: "visits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      register_guest_self_service: {
+        Args: {
+          p_location_code: string
+          p_name: string
+          p_organization: string
+          p_purpose: string
+          p_request_id: string
+          p_token_hash: string
+        }
+        Returns: Database["public"]["Tables"]["visits"]["Row"]
         SetofOptions: {
           from: "*"
           to: "visits"
@@ -455,7 +502,7 @@ export type Database = {
       person_type: "USER" | "GUEST"
       profile_status: "PENDING" | "ACTIVE" | "SUSPENDED"
       user_category: "STAFF" | "PELATIH"
-      visit_source: "PWA" | "ADMIN" | "IMPORT"
+      visit_source: "PWA" | "ADMIN" | "IMPORT" | "SELF_SERVICE"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -590,7 +637,7 @@ export const Constants = {
       person_type: ["USER", "GUEST"],
       profile_status: ["PENDING", "ACTIVE", "SUSPENDED"],
       user_category: ["STAFF", "PELATIH"],
-      visit_source: ["PWA", "ADMIN", "IMPORT"],
+      visit_source: ["PWA", "ADMIN", "IMPORT", "SELF_SERVICE"],
     },
   },
 } as const

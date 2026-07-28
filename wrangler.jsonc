@@ -2,8 +2,16 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "itu-access",
   "main": ".open-next/worker.js",
+  "keep_vars": true,
   "compatibility_date": "2026-07-14",
   "compatibility_flags": ["nodejs_compat"],
+  "secrets": {
+    "required": [
+      "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
+      "TURNSTILE_SECRET_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ]
+  },
   "assets": {
     "binding": "ASSETS",
     "directory": ".open-next/assets"
