@@ -1,10 +1,10 @@
 import { createHealthResponse } from "@/features/pwa/health-response";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabaseAdminClient();
   const { error } = await supabase.from("locations").select("id").limit(1);
 
   return Response.json(createHealthResponse(!error), {
