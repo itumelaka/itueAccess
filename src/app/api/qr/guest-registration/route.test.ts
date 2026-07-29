@@ -18,7 +18,7 @@ beforeEach(() => {
 });
 
 describe("GET /api/qr/guest-registration", () => {
-  it("downloads the ADMIN-protected main guest QR targeting /guest", async () => {
+  it("downloads an ADMIN-protected HD SVG with the exact main guest payload", async () => {
     const response = await GET(
       new Request("https://itu.example/api/qr/guest-registration"),
     );
@@ -28,8 +28,12 @@ describe("GET /api/qr/guest-registration", () => {
       "https://itu.example/guest",
       expect.objectContaining({ type: "svg" }),
     );
-    expect(response.headers.get("content-disposition")).toContain(
-      'filename="QR PENDAFTARAN TETAMU ITU.svg"',
+    expect(response.headers.get("content-type")).toBe(
+      "image/svg+xml; charset=utf-8",
     );
+    expect(response.headers.get("content-disposition")).toContain(
+      'filename="itu-eaccess-guest-main.svg"',
+    );
+    expect(await response.text()).toBe("<svg />");
   });
 });

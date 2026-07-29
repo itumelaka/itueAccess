@@ -1,21 +1,22 @@
 export type LocationQrAudience = "user" | "guest";
 
-export const MAIN_GUEST_QR_FILE_NAME = "QR PENDAFTARAN TETAMU ITU.svg";
+export const MAIN_GUEST_QR_FILE_NAME = "itu-eaccess-guest-main.svg";
 
 export function qrDownloadFileName(
   name: string | null | undefined,
   code = "LOKASI",
   audience: LocationQrAudience = "user",
 ) {
-  const source = (name || code || "LOKASI").trim();
-  const safeName = source
+  const source = (code || name || "LOKASI").trim();
+  const safeCode = source
     .toUpperCase()
-    .replace(/[\u0000-\u001f\u007f\\/:*?"<>|#%]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/[^A-Z0-9_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-_]+|[-_]+$/g, "");
+  const segment = safeCode || "LOKASI";
+  const qrType = audience === "guest" ? "guest" : "user";
 
-  const prefix = audience === "guest" ? "QR TETAMU" : "QR";
-  return `${prefix} ${safeName || "LOKASI"}.svg`;
+  return `itu-eaccess-${qrType}-${segment}.svg`;
 }
 
 export function locationQrPath(

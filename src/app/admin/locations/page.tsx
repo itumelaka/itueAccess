@@ -39,9 +39,7 @@ export default async function AdminLocationsPage() {
   const rows = await Promise.all(
     (locations ?? []).map(async (location) => {
       const scanPath = locationQrPath(location.code, "user");
-      const guestPath = locationQrPath(location.code, "guest");
       const scanUrl = `${publicOrigin}${scanPath}`;
-      const guestUrl = `${publicOrigin}${guestPath}`;
 
       return {
         ...location,
@@ -49,17 +47,6 @@ export default async function AdminLocationsPage() {
         qr: await QRCode.toDataURL(scanUrl, qrOptions),
         qrDownloadUrl: `/api/qr/${encodeURIComponent(location.code)}?name=${encodeURIComponent(location.name)}`,
         qrFileName: qrDownloadFileName(location.name, location.code, "user"),
-        guestUrl,
-        guestQr: await QRCode.toDataURL(guestUrl, {
-          ...qrOptions,
-          color: { dark: "#9A0020", light: "#FFFFFF" },
-        }),
-        guestQrDownloadUrl: `/api/qr/${encodeURIComponent(location.code)}?audience=guest&name=${encodeURIComponent(location.name)}`,
-        guestQrFileName: qrDownloadFileName(
-          location.name,
-          location.code,
-          "guest",
-        ),
       };
     }),
   );
@@ -70,7 +57,7 @@ export default async function AdminLocationsPage() {
         <div>
           <p className="admin-kicker">Konfigurasi</p>
           <h1>Lokasi & kod QR</h1>
-          <p>Setiap lokasi mempunyai QR pengguna dan QR self-service tetamu.</p>
+          <p>Setiap lokasi mempunyai satu QR pengguna untuk rekod keluar masuk.</p>
         </div>
       </header>
 
@@ -87,7 +74,7 @@ export default async function AdminLocationsPage() {
             href="/api/qr/guest-registration"
             download={MAIN_GUEST_QR_FILE_NAME}
           >
-            Muat turun QR Tetamu Utama
+            Muat turun HD QR Tetamu Utama
           </a>
         </div>
         <div className="qr-main-card__visual">
@@ -158,27 +145,7 @@ export default async function AdminLocationsPage() {
                   href={location.qrDownloadUrl}
                   download={location.qrFileName}
                 >
-                  Muat turun QR pengguna
-                </a>
-              </div>
-              <div>
-                <strong>Tetamu lokasi</strong>
-                <Image
-                  src={location.guestQr}
-                  width={220}
-                  height={220}
-                  alt={`Kod QR tetamu ${location.name}`}
-                  unoptimized
-                />
-                <a className="qr-card__url" href={location.guestUrl}>
-                  {location.guestUrl}
-                </a>
-                <a
-                  className="admin-primary"
-                  href={location.guestQrDownloadUrl}
-                  download={location.guestQrFileName}
-                >
-                  Muat turun QR tetamu
+                  Muat turun HD QR pengguna
                 </a>
               </div>
             </div>

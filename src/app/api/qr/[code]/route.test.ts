@@ -18,7 +18,7 @@ beforeEach(() => {
 });
 
 describe("GET /api/qr/[code]", () => {
-  it("keeps user downloads ADMIN-protected and targets /scan/", async () => {
+  it("downloads an ADMIN-protected HD SVG with the exact existing user payload", async () => {
     const response = await GET(
       new Request("https://itu.example/api/qr/AUDI?name=Auditorium"),
       { params: Promise.resolve({ code: "AUDI" }) },
@@ -29,12 +29,16 @@ describe("GET /api/qr/[code]", () => {
       "https://itu.example/scan/AUDI",
       expect.objectContaining({ type: "svg" }),
     );
-    expect(response.headers.get("content-disposition")).toContain(
-      'filename="QR AUDITORIUM.svg"',
+    expect(response.headers.get("content-type")).toBe(
+      "image/svg+xml; charset=utf-8",
     );
+    expect(response.headers.get("content-disposition")).toContain(
+      'filename="itu-eaccess-user-AUDI.svg"',
+    );
+    expect(await response.text()).toBe("<svg />");
   });
 
-  it("keeps guest downloads ADMIN-protected and targets /guest/", async () => {
+  it("preserves the backward-compatible ADMIN-protected guest download", async () => {
     const response = await GET(
       new Request(
         "https://itu.example/api/qr/AUDI?audience=guest&name=Auditorium",
@@ -48,7 +52,7 @@ describe("GET /api/qr/[code]", () => {
       expect.objectContaining({ type: "svg" }),
     );
     expect(response.headers.get("content-disposition")).toContain(
-      'filename="QR TETAMU AUDITORIUM.svg"',
+      'filename="itu-eaccess-guest-AUDI.svg"',
     );
   });
 });
