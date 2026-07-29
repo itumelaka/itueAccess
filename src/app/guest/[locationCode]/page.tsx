@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { GuestSelfServiceForm } from "@/features/guests/guest-self-service-form";
@@ -26,16 +27,40 @@ export default async function GuestSelfServicePage({
 
   return (
     <main className="guest-self-service">
-      <header>
-        <p>ITU eAccess</p>
-        <h1>Selamat datang</h1>
-        <span>Daftar kehadiran anda sebelum memasuki lokasi.</span>
-      </header>
-      <GuestSelfServiceForm
-        locationCode={location.code}
-        locationName={location.name}
-        turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
-      />
+      <div className="guest-self-service__shell">
+        <header className="guest-self-service__header">
+          <div className="guest-self-service__brand" aria-label="ITU eAccess">
+            <Image
+              src="/brand/itu-eaccess-mark.svg"
+              width={56}
+              height={56}
+              alt=""
+              priority
+            />
+            <span>
+              itu_<strong>eAccess</strong>
+            </span>
+          </div>
+          <p className="guest-self-service__eyebrow">Daftar pelawat</p>
+          <h1>Selamat datang</h1>
+          <p className="guest-self-service__lead">
+            Daftar kehadiran sebelum masuk dan gunakan halaman yang sama apabila
+            anda keluar.
+          </p>
+          <div className="guest-self-service__location">
+            <span>Lokasi lawatan</span>
+            <strong>{location.name}</strong>
+          </div>
+        </header>
+        <GuestSelfServiceForm
+          locationCode={location.code}
+          locationName={location.name}
+          turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
+        />
+        <footer className="guest-self-service__footer">
+          Rekod ini digunakan untuk keselamatan dan pengurusan akses ITU.
+        </footer>
+      </div>
     </main>
   );
 }

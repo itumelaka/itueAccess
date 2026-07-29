@@ -35,7 +35,13 @@ vi.mock("@/features/spreadsheet/archive-sync", () => ({
   syncArchivePayload: mocks.syncArchivePayload,
 }));
 
-import { approveUser, checkOutUser, rejectUser, updateUserCategory } from "./admin-actions";
+import {
+  approveUser,
+  checkOutGuest,
+  checkOutUser,
+  rejectUser,
+  updateUserCategory,
+} from "./admin-actions";
 
 describe("approveUser", () => {
   it("activates the profile with selected category and corrected full name", async () => {
@@ -155,5 +161,46 @@ describe("checkOutUser", () => {
     });
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin");
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/history");
+  });
+});
+
+describe("checkOutGuest", () => {
+  it("keeps admin checkout available as a fallback and archives the exit", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        id: "guest-visit-1",
+        check_in_at: "2026-07-29T00:00:00Z",
+        check_out_at: "2026-07-29T01:00:00Z",
+        guest_name: "Tetamu Kaunter",
+        guest_organization: "Jabatan ITU",
+        guest_purpose: "Mesyuarat",
+      },
+      error: null,
+    });
+    mocks.createSupabaseServerClient.mockResolvedValueOnce({ rpc });
+    const formData = new FormData();
+    formData.set("visitId", "guest-visit-1");
+
+    await checkOutGuest(formData);
+
+    expect(mocks.requireProfile).toHaveBeenCalledWith("ADMIN");
+    expect(rpc).toHaveBeenCalledWith("admin_check_out_guest", {
+      p_visit_id: "guest-visit-1",
+      p_request_id: expect.any(String),
+    });
+    expect(mocks.archiveGuestMovement).toHaveBeenCalledWith({
+      status: "KELUAR",
+      occurredAt: "2026-07-29T01:00:00Z",
+      recorderEmail: "admin@example.com",
+      guestName: "Tetamu Kaunter",
+      organization: "Jabatan ITU",
+      purpose: "Mesyuarat",
+    });
+    expect(mocks.syncArchivePayload).toHaveBeenCalledWith({
+      sheetName: "TETAMU",
+      values: [],
+    });
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin/guests");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/admin");
   });
 });
