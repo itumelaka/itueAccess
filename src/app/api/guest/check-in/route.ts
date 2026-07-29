@@ -54,6 +54,7 @@ export async function POST(request: Request) {
         p_location_code: parsed.data.locationCode,
         p_name: parsed.data.name,
         p_organization: parsed.data.organization,
+        p_host_name: parsed.data.hostName,
         p_purpose: parsed.data.purpose,
         p_token_hash: tokenHash,
         p_request_id: parsed.data.requestId,

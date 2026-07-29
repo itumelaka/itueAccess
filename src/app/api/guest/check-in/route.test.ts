@@ -85,6 +85,7 @@ const validBody = {
   locationCode: "AUDITORIUM",
   name: "Tetamu Satu",
   organization: "Jabatan ITU",
+  hostName: "Pn. Aisyah",
   purpose: "Mesyuarat",
   turnstileToken: "verified-token",
 };
@@ -139,6 +140,7 @@ describe("POST /api/guest/check-in", () => {
         location_id: "location-1",
         guest_name: "Tetamu Satu",
         guest_organization: "Jabatan ITU",
+        guest_host_name: "Pn. Aisyah",
         guest_purpose: "Mesyuarat",
         check_in_at: "2026-07-29T00:00:00.000Z",
       },
@@ -169,6 +171,7 @@ describe("POST /api/guest/check-in", () => {
       p_location_code: "AUDITORIUM",
       p_name: "Tetamu Satu",
       p_organization: "Jabatan ITU",
+      p_host_name: "Pn. Aisyah",
       p_purpose: "Mesyuarat",
       p_token_hash: "hashed-session-token",
       p_request_id: validBody.requestId,

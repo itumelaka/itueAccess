@@ -38,6 +38,17 @@ function renderGuestForm() {
     />,
   );
 }
+function renderSelectableGuestForm() {
+  return render(
+    <GuestSelfServiceForm
+      locations={[
+        { code: "AUDI", name: "Auditorium" },
+        { code: "MAKMAL", name: "Makmal" },
+      ]}
+      turnstileSiteKey="public-site-key"
+    />,
+  );
+}
 
 async function loadTurnstile(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByTestId("turnstile-script"));
@@ -89,12 +100,17 @@ describe("GuestSelfServiceForm", () => {
       screen.getByRole("heading", { name: "Memeriksa rekod anda…" }),
     ).toBeTruthy();
     await screen.findByRole("heading", { name: "Maklumat lawatan" });
+    expect(screen.queryByRole("combobox")).toBeNull();
     await loadTurnstile(user);
 
     await user.type(screen.getByLabelText("Nama penuh"), "  Tetamu Satu  ");
     await user.type(
       screen.getByLabelText("Organisasi / syarikat"),
       "  Jabatan ITU  ",
+    );
+    await user.type(
+      screen.getByLabelText("Pegawai yang hendak ditemui"),
+      "  Pn. Aisyah  ",
     );
     await user.type(screen.getByLabelText("Tujuan lawatan"), "  Mesyuarat  ");
     await user.click(screen.getByRole("button", { name: "Daftar masuk" }));
@@ -113,6 +129,7 @@ describe("GuestSelfServiceForm", () => {
       locationCode: "AUDITORIUM",
       name: "Tetamu Satu",
       organization: "Jabatan ITU",
+      hostName: "Pn. Aisyah",
       purpose: "Mesyuarat",
       turnstileToken: "verified-token",
     });
@@ -130,11 +147,13 @@ describe("GuestSelfServiceForm", () => {
 
     renderGuestForm();
     await screen.findByRole("heading", { name: "Maklumat lawatan" });
+    expect(screen.queryByRole("combobox")).toBeNull();
     await loadTurnstile(user);
     await user.click(screen.getByRole("button", { name: "Daftar masuk" }));
 
     expect(screen.getByText(/Masukkan nama penuh/)).toBeTruthy();
     expect(screen.getByText(/Masukkan organisasi/)).toBeTruthy();
+    expect(screen.getByText(/Masukkan nama pegawai/)).toBeTruthy();
     expect(screen.getByText(/Terangkan tujuan lawatan/)).toBeTruthy();
     expect(screen.getByRole("alert").textContent).toContain(
       "Semak maklumat",
@@ -142,6 +161,51 @@ describe("GuestSelfServiceForm", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("requires a destination and submits the selected active location code", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ ok: true, visit: null }))
+      .mockResolvedValueOnce(
+        jsonResponse({
+          ok: true,
+          visit: {
+            id: "visit-main",
+            name: "Tetamu Utama",
+            locationName: "Auditorium",
+            checkInAt: "2026-07-29T00:00:00.000Z",
+          },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+
+    renderSelectableGuestForm();
+    await screen.findByRole("heading", { name: "Maklumat lawatan" });
+    await loadTurnstile(user);
+    await user.type(screen.getByLabelText("Nama penuh"), "Tetamu Utama");
+    await user.type(screen.getByLabelText("Organisasi / syarikat"), "Vendor ITU");
+    await user.type(
+      screen.getByLabelText("Pegawai yang hendak ditemui"),
+      "En. Rahman",
+    );
+    await user.type(screen.getByLabelText("Tujuan lawatan"), "Mesyuarat");
+    await user.click(screen.getByRole("button", { name: "Daftar masuk" }));
+
+    expect(screen.getByText("Pilih lokasi atau destinasi lawatan.")).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await user.selectOptions(screen.getByRole("combobox"), "AUDI");
+    await user.click(screen.getByRole("button", { name: "Daftar masuk" }));
+    await screen.findByRole("heading", { name: "Tetamu Utama" });
+
+    const requestBody = JSON.parse(
+      String(fetchMock.mock.calls[1]?.[1]?.body),
+    ) as Record<string, unknown>;
+    expect(requestBody).toMatchObject({
+      locationCode: "AUDI",
+      hostName: "En. Rahman",
+    });
+  });
   it("handles a session network error and allows a retry", async () => {
     const fetchMock = vi
       .fn()

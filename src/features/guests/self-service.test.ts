@@ -15,6 +15,7 @@ describe("guest self service", () => {
         locationCode: " auditorium ",
         name: " Tetamu Satu ",
         organization: " Jabatan ",
+        hostName: " Pegawai ITU ",
         purpose: " Mesyuarat ",
         turnstileToken: "verified",
       }),
@@ -23,11 +24,25 @@ describe("guest self service", () => {
       locationCode: "AUDITORIUM",
       name: "Tetamu Satu",
       organization: "Jabatan",
+      hostName: "Pegawai ITU",
       purpose: "Mesyuarat",
       turnstileToken: "verified",
     });
   });
 
+  it("rejects self-service registration without an officer to meet", () => {
+    const result = guestSelfServiceInputSchema.safeParse({
+      requestId: "35000000-0000-4000-8000-000000000001",
+      locationCode: "AUDITORIUM",
+      name: "Tetamu Satu",
+      organization: "Jabatan",
+      hostName: "",
+      purpose: "Mesyuarat",
+      turnstileToken: "verified",
+    });
+
+    expect(result.success).toBe(false);
+  });
   it("creates an opaque token and stores only its hash", () => {
     const token = createGuestSessionToken();
     expect(token).toMatch(/^[0-9a-f]{64}$/);

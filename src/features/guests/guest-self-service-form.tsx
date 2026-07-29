@@ -10,8 +10,8 @@ import {
 } from "react";
 
 import {
-  guestDetailsSchema,
-  type GuestDetails,
+  guestRegistrationDetailsSchema,
+  type GuestRegistrationDetails,
 } from "@/features/guests/validation";
 
 type GuestSession = {
@@ -32,8 +32,13 @@ type Notice = {
   text: string;
 };
 
-type GuestField = keyof GuestDetails;
+type GuestField = keyof GuestRegistrationDetails;
 type FieldErrors = Partial<Record<GuestField, string>>;
+
+export type GuestLocation = {
+  code: string;
+  name: string;
+};
 type SessionState = "loading" | "ready" | "error";
 type TurnstileState = "loading" | "ready" | "verified" | "error";
 
@@ -103,10 +108,12 @@ function StatusNotice({ notice }: { notice: Notice | null }) {
 export function GuestSelfServiceForm({
   locationCode,
   locationName,
+  locations = [],
   turnstileSiteKey,
 }: {
-  locationCode: string;
-  locationName: string;
+  locationCode?: string;
+  locationName?: string;
+  locations?: GuestLocation[];
   turnstileSiteKey: string;
 }) {
   const [session, setSession] = useState<GuestSession | null>(null);
@@ -237,10 +244,12 @@ export function GuestSelfServiceForm({
 
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
-    const parsed = guestDetailsSchema.safeParse({
+    const parsed = guestRegistrationDetailsSchema.safeParse({
       name: form.get("name"),
       organization: form.get("organization"),
+      hostName: form.get("hostName"),
       purpose: form.get("purpose"),
+      locationCode: locationCode ?? form.get("locationCode"),
     });
 
     if (!parsed.success) {
@@ -274,7 +283,6 @@ export function GuestSelfServiceForm({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           requestId: checkInRequestId,
-          locationCode,
           ...parsed.data,
           turnstileToken,
         }),
@@ -401,7 +409,9 @@ export function GuestSelfServiceForm({
   }
 
   if (session) {
-    const isDifferentLocation = session.locationName !== locationName;
+    const isDifferentLocation = Boolean(
+      locationName && session.locationName !== locationName,
+    );
     return (
       <section className="guest-self-service__card">
         <div className="guest-self-service__status-row">
@@ -492,7 +502,14 @@ export function GuestSelfServiceForm({
       <p className="guest-self-service__kicker">Daftar masuk tetamu</p>
       <h2>Maklumat lawatan</h2>
       <p className="guest-self-service__intro">
-        Lengkapkan maklumat berikut untuk masuk ke <strong>{locationName}</strong>.
+        {locationName ? (
+          <>
+            Lengkapkan maklumat berikut untuk masuk ke{" "}
+            <strong>{locationName}</strong>.
+          </>
+        ) : (
+          "Lengkapkan maklumat berikut dan pilih destinasi lawatan anda."
+        )}
       </p>
       <form onSubmit={checkIn} className="guest-self-service__form" noValidate>
         <label htmlFor="guest-name">
@@ -538,6 +555,30 @@ export function GuestSelfServiceForm({
             </span>
           ) : null}
         </label>
+        <label htmlFor="guest-host-name">
+          Pegawai yang hendak ditemui
+          <input
+            id="guest-host-name"
+            name="hostName"
+            required
+            minLength={2}
+            maxLength={160}
+            autoComplete="off"
+            aria-invalid={Boolean(fieldErrors.hostName)}
+            aria-describedby={
+              fieldErrors.hostName ? "guest-host-name-error" : undefined
+            }
+            onChange={() => clearFieldError("hostName")}
+          />
+          {fieldErrors.hostName ? (
+            <span
+              id="guest-host-name-error"
+              className="guest-self-service__field-error"
+            >
+              {fieldErrors.hostName}
+            </span>
+          ) : null}
+        </label>
         <label htmlFor="guest-purpose">
           Tujuan lawatan
           <textarea
@@ -562,6 +603,39 @@ export function GuestSelfServiceForm({
             </span>
           ) : null}
         </label>
+        {!locationCode ? (
+          <label htmlFor="guest-location">
+            Lokasi / destinasi
+            <select
+              id="guest-location"
+              name="locationCode"
+              defaultValue=""
+              required
+              aria-invalid={Boolean(fieldErrors.locationCode)}
+              aria-describedby={
+                fieldErrors.locationCode ? "guest-location-error" : undefined
+              }
+              onChange={() => clearFieldError("locationCode")}
+            >
+              <option value="" disabled>
+                Pilih lokasi
+              </option>
+              {locations.map((location) => (
+                <option value={location.code} key={location.code}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.locationCode ? (
+              <span
+                id="guest-location-error"
+                className="guest-self-service__field-error"
+              >
+                {fieldErrors.locationCode}
+              </span>
+            ) : null}
+          </label>
+        ) : null}
         <div className="guest-self-service__security">
           <span>Pengesahan keselamatan</span>
           {turnstileSiteKey ? (

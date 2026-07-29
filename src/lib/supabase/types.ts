@@ -264,6 +264,7 @@ export type Database = {
           check_out_request_id: string | null
           created_at: string
           guest_name: string | null
+          guest_host_name: string | null
           guest_organization: string | null
           guest_purpose: string | null
           id: string
@@ -281,6 +282,7 @@ export type Database = {
           check_out_request_id?: string | null
           created_at?: string
           guest_name?: string | null
+          guest_host_name?: string | null
           guest_organization?: string | null
           guest_purpose?: string | null
           id?: string
@@ -298,6 +300,7 @@ export type Database = {
           check_out_request_id?: string | null
           created_at?: string
           guest_name?: string | null
+          guest_host_name?: string | null
           guest_organization?: string | null
           guest_purpose?: string | null
           id?: string
@@ -360,6 +363,7 @@ export type Database = {
           check_out_request_id: string | null
           created_at: string
           guest_name: string | null
+          guest_host_name: string | null
           guest_organization: string | null
           guest_purpose: string | null
           id: string
@@ -399,6 +403,7 @@ export type Database = {
           check_out_request_id: string | null
           created_at: string
           guest_name: string | null
+          guest_host_name: string | null
           guest_organization: string | null
           guest_purpose: string | null
           id: string
@@ -425,6 +430,7 @@ export type Database = {
           check_out_request_id: string | null
           created_at: string
           guest_name: string | null
+          guest_host_name: string | null
           guest_organization: string | null
           guest_purpose: string | null
           id: string
@@ -462,6 +468,7 @@ export type Database = {
           check_out_request_id: string | null
           created_at: string
           guest_name: string | null
+          guest_host_name: string | null
           guest_organization: string | null
           guest_purpose: string | null
           id: string
@@ -484,6 +491,7 @@ export type Database = {
           p_location_code: string
           p_name: string
           p_organization: string
+          p_host_name: string
           p_purpose: string
           p_request_id: string
           p_token_hash: string
