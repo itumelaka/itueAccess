@@ -11,11 +11,11 @@ const links = [
 export function AdminNav() {
   return (
     <nav className="admin-nav" aria-label="Navigasi admin">
-      <Link className="admin-brand" href="/admin">ITU <strong>eAccess</strong></Link>
+      <Link className="admin-brand" href="/admin" prefetch={false}>ITU <strong>eAccess</strong></Link>
       <div className="admin-nav__links">
-        {links.map(([href, label]) => <Link key={href} href={href}>{label}</Link>)}
+        {links.map(([href, label]) => <Link key={href} href={href} prefetch={false}>{label}</Link>)}
       </div>
-      <Link className="admin-nav__exit" href="/history">Paparan pengguna</Link>
+      <Link className="admin-nav__exit" href="/history" prefetch={false}>Paparan pengguna</Link>
     </nav>
   );
 }
