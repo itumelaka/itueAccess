@@ -1,6 +1,6 @@
 # ITU eAccess Project Overview
 
-Dokumen ini ialah snapshot status projek setakat 15 Julai 2026.
+Dokumen ini ialah snapshot status projek setakat 27 Ogos 2026.
 
 ## Matlamat
 
@@ -29,11 +29,12 @@ Cloudflare Workers = hosting production
 
 ### Tetamu
 
-1. Tetamu datang ke kaunter.
-2. Admin daftar tetamu melalui dashboard `Tetamu`.
-3. Sistem rekod tetamu masuk.
-4. Bila tetamu keluar, admin tutup rekod keluar dari dashboard.
-5. Rekod tetamu juga dihantar ke Google Spreadsheet.
+1. Tetamu scan Main Guest QR di pintu masuk.
+2. Main Guest QR membuka `/guest`.
+3. Tetamu memilih destinasi, mengisi maklumat lawatan dan melengkapkan Turnstile.
+4. Sistem merekod tetamu masuk melalui guest self-service.
+5. Bila tetamu keluar, checkout self-service atau checkout admin boleh digunakan.
+6. Rekod tetamu juga dihantar ke Google Spreadsheet.
 
 Nota: Tetamu tidak guna login Google buat masa ini.
 
@@ -94,11 +95,29 @@ Kategori `TETAMU` tidak digunakan untuk akaun Google login. Tetamu dikendalikan 
 - `/suspended` — akaun digantung.
 - `/history` — sejarah pengguna.
 - `/scan/[locationCode]` — QR lokasi.
+- `/guest` — pendaftaran tetamu utama dengan pemilihan destinasi.
+- `/guest/[locationCode]` — route guest-lokasi backward-compatible; tidak dipaparkan sebagai QR pada kad lokasi admin.
 - `/admin` — dashboard admin.
 - `/admin/users` — urus pengguna.
 - `/admin/locations` — lokasi dan QR.
 - `/admin/guests` — kaunter tetamu.
 - `/admin/history` — sejarah admin.
+
+## Workflow QR production
+
+Workflow berikut telah disahkan pada production `https://itu-access.itumelaka.workers.dev` pada 27 Ogos 2026 untuk implementation commit `9b5e466`:
+
+- Admin → Locations memaparkan satu Main Guest QR di bahagian atas.
+- Main Guest QR menyasarkan `/guest`, dan tetamu memilih destinasi dalam flow pendaftaran.
+- Setiap kad lokasi memaparkan satu User QR sahaja, menggunakan payload sedia ada `/scan/[locationCode]`.
+- Guest QR merah khusus lokasi tidak lagi dipaparkan pada kad lokasi.
+- Route dan API guest-lokasi kekal tersedia untuk backward compatibility.
+- User QR hitam yang telah dicetak kekal sah; tiada `locationCode` atau payload User QR berubah.
+- Semua QR yang kelihatan menyediakan muat turun SVG HD:
+  - `itu-eaccess-guest-main.svg`
+  - `itu-eaccess-user-[locationCode].svg`
+
+Verification production mengesahkan Main Guest SVG dan satu User SVG lokasi boleh dimuat turun, dibuka dan discan; destinasi `/guest`, pemilihan destinasi, serta `/scan/[locationCode]` semuanya berfungsi. Kad lokasi tidak memaparkan Guest QR merah dan halaman admin stabil semasa pemeriksaan berulang. Cloudflare Error 1102 sementara yang pernah diperhatikan tidak berulang dalam verification akhir. Punca sejarah Error 1102 tidak dikenal pasti dan tidak boleh dianggap telah diperbaiki.
 
 ## Google Spreadsheet archive
 
@@ -192,6 +211,6 @@ pnpm test:run src/features/admin/dashboard-queries.test.ts src/features/admin/ad
 2. Tambah carian dan filter sejarah.
 3. Tambah laporan ringkas ikut tarikh/lokasi/kategori.
 4. Tambah notifikasi atau badge jelas untuk pending approval.
-5. Kemaskan print/export QR lokasi.
+5. Pantau penggunaan dan kualiti cetakan SVG HD QR production.
 6. Tambah backup/restore berkala Supabase.
 7. Pertimbangkan custom domain jika perlu.

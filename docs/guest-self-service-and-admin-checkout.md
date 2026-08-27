@@ -12,8 +12,15 @@
 
 ### Guest self-service
 
-- Each active location has a separate guest QR URL at `/guest/<LOCATION_CODE>`.
-- Guests enter their name, organization and visit purpose without creating an account.
+- Admin → Locations displays one Main Guest QR targeting `/guest`.
+- Guests select their destination during the main registration flow, then enter
+  their name, organization and visit purpose without creating an account.
+- Individual location cards display only their existing User QR targeting
+  `/scan/<LOCATION_CODE>`; location-specific red Guest QR codes are not shown.
+- Existing `/guest/<LOCATION_CODE>` routes and related APIs remain available for
+  backward compatibility.
+- Visible QR downloads are resolution-independent SVG files named
+  `itu-eaccess-guest-main.svg` and `itu-eaccess-user-<LOCATION_CODE>.svg`.
 - Cloudflare Turnstile is verified on the server before Supabase is called.
 - The server generates a random checkout token. Only its SHA-256 hash is stored.
 - The raw token is kept in an HTTP-only, same-site cookie for 24 hours.
@@ -50,8 +57,24 @@ Run the database test suite before deploying the application.
 
 1. Force checkout one test user and confirm one audit-log record plus one
    spreadsheet `KELUAR` row.
-2. Scan a guest QR, complete Turnstile and check in.
+2. Scan the Main Guest QR, select a destination, complete Turnstile and check in.
 3. Confirm a `SELF_SERVICE` guest visit and a spreadsheet `MASUK` row.
 4. Check out from the same browser and confirm `check_out_at` plus a spreadsheet
    `KELUAR` row.
 5. Confirm an expired or unknown token cannot close another visit.
+
+## Production verification
+
+Verified successfully on 27 August 2026 at
+`https://itu-access.itumelaka.workers.dev` using implementation commit
+`9b5e466`:
+
+- The Main Guest SVG downloaded, opened and scanned to `/guest`.
+- Guest destination selection worked correctly.
+- A location User SVG downloaded, opened and scanned to the unchanged
+  `/scan/<LOCATION_CODE>` destination.
+- No location-specific red Guest QR appeared on individual location cards.
+- Admin pages remained stable during repeated checks.
+- A previously observed transient Cloudflare Error 1102 did not recur during
+  final verification. Its historical root cause was not identified or confirmed
+  fixed.
